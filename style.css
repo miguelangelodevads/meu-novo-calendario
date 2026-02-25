@@ -159,6 +159,10 @@ body {
   background-color: #f7f9ff;
 }
 
+.dia-celula * {
+  pointer-events: none;
+}
+
 /* Linha do topo: número do dia + bolinha do dia atual */
 .dia-topo {
   display: flex;

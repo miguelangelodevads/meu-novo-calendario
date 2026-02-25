@@ -22,6 +22,7 @@ function corEvento(indice) {
 let mesVisualizado;
 let anoVisualizado;
 let dataSelecionada = null;
+let eventoEmEdicao = null;
 
 // Eventos: chave "YYYY-MM-DD" → array de { titulo, horaInicio, horaFim, nota, cor }
 const eventos = {};
@@ -149,15 +150,22 @@ function renderCalendario() {
     }
 
     celula.appendChild(listaEl);
-    // Ao clicar num dia, verifica se tem eventos
-    celula.addEventListener("click", () => {
+
+    // Função de abrir evento/formulário
+    const abrirDia = (e) => {
+      e.preventDefault();
+      e.stopPropagation();
       const chave = chaveData(dia, mesVisualizado, anoVisualizado);
       if (eventos[chave] && eventos[chave].length > 0) {
         abrirSheetVisualizacao(dia);
       } else {
         abrirSheet(dia);
       }
-    });
+    };
+
+    celula.addEventListener("click", abrirDia);
+    celula.addEventListener("touchend", abrirDia, { passive: false });
+
     grade.appendChild(celula);
   }
 }
