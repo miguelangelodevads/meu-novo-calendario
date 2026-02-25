@@ -1092,4 +1092,355 @@ document.addEventListener("DOMContentLoaded", () => {
     const dia = hoje.getDate();
     abrirSheet(dia);
   });
+
+  // ============================================================
+  // Gestos de swipe para todo o app
+  // ============================================================
+  (function () {
+    // --- Helpers ---
+    function isSheetOpen() {
+      return (
+        document.getElementById("bottom-sheet").classList.contains("ativo") ||
+        document
+          .getElementById("sheet-visualizacao")
+          .classList.contains("ativo") ||
+        document.getElementById("drum-overlay").classList.contains("ativo") ||
+        document.getElementById("top-sheet-stats").classList.contains("ativo")
+      );
+    }
+
+    // =============================================
+    // 1) Swipe horizontal na tela principal → muda mês
+    //    Usa capture: true para interceptar antes dos handlers das células
+    // =============================================
+    const calendario = document.querySelector(".calendario");
+    let hStartX = 0;
+    let hStartY = 0;
+    let hStartTime = 0;
+    let hSwiping = false;
+    let hSwipeAnimating = false;
+
+    const H_THRESHOLD = 40;
+    const H_MAX_TIME = 600;
+
+    calendario.addEventListener(
+      "touchstart",
+      (e) => {
+        if (isSheetOpen() || hSwipeAnimating) return;
+        const t = e.touches[0];
+        hStartX = t.clientX;
+        hStartY = t.clientY;
+        hStartTime = Date.now();
+        hSwiping = false;
+      },
+      { passive: true, capture: true },
+    );
+
+    calendario.addEventListener(
+      "touchmove",
+      (e) => {
+        if (isSheetOpen() || !hStartX || hSwipeAnimating) return;
+        const t = e.touches[0];
+        const dx = Math.abs(t.clientX - hStartX);
+        const dy = Math.abs(t.clientY - hStartY);
+        if (dx > 20 && dx > dy * 1.3) {
+          hSwiping = true;
+          e.preventDefault();
+          e.stopPropagation();
+        }
+      },
+      { passive: false, capture: true },
+    );
+
+    calendario.addEventListener(
+      "touchend",
+      (e) => {
+        if (!hSwiping) {
+          hStartX = 0;
+          hStartY = 0;
+          return;
+        }
+
+        // Previne que o toque abra um dia quando estamos fazendo swipe
+        e.preventDefault();
+        e.stopPropagation();
+
+        const t = e.changedTouches[0];
+        const dx = t.clientX - hStartX;
+        const elapsed = Date.now() - hStartTime;
+
+        if (Math.abs(dx) >= H_THRESHOLD && elapsed <= H_MAX_TIME) {
+          hSwipeAnimating = true;
+          const dir = dx < 0 ? "left" : "right";
+          const grade = document.getElementById("grade-dias");
+
+          grade.style.transition =
+            "transform 0.2s ease-out, opacity 0.18s ease-out";
+          grade.style.transform = `translateX(${dir === "left" ? "-40" : "40"}px)`;
+          grade.style.opacity = "0.2";
+
+          setTimeout(() => {
+            grade.style.transition = "none";
+            grade.style.transform = `translateX(${dir === "left" ? "40" : "-40"}px)`;
+            grade.style.opacity = "0.2";
+
+            if (dir === "left") proximoMes();
+            else mesAnterior();
+
+            grade.getBoundingClientRect();
+
+            grade.style.transition =
+              "transform 0.25s ease-out, opacity 0.2s ease-out";
+            grade.style.transform = "translateX(0)";
+            grade.style.opacity = "1";
+
+            setTimeout(() => {
+              grade.style.transition = "";
+              grade.style.transform = "";
+              grade.style.opacity = "";
+              hSwipeAnimating = false;
+            }, 260);
+          }, 180);
+        }
+
+        hStartX = 0;
+        hStartY = 0;
+        hSwiping = false;
+      },
+      { passive: false, capture: true },
+    );
+
+    // =============================================
+    // 2) Swipe para baixo nos bottom sheets → fecha
+    // =============================================
+    function addSwipeDownDismiss(sheetEl, fecharFn) {
+      let sStartY = 0;
+      let sCurrentY = 0;
+      let sDragging = false;
+
+      sheetEl.addEventListener(
+        "touchstart",
+        (e) => {
+          // Só inicia se é swipe no sheet (não em inputs ou scroll interno)
+          const tag = e.target.tagName;
+          if (tag === "INPUT" || tag === "TEXTAREA" || tag === "SELECT") return;
+
+          const t = e.touches[0];
+          sStartY = t.clientY;
+          sCurrentY = t.clientY;
+          sDragging = true;
+          sheetEl.style.transition = "none";
+        },
+        { passive: true },
+      );
+
+      sheetEl.addEventListener(
+        "touchmove",
+        (e) => {
+          if (!sDragging) return;
+          const t = e.touches[0];
+          sCurrentY = t.clientY;
+          const dy = sCurrentY - sStartY;
+
+          // Só permite arrastar para baixo
+          if (dy > 0) {
+            e.preventDefault();
+            sheetEl.style.transform = `translateY(${dy}px)`;
+            sheetEl.style.opacity = Math.max(0.5, 1 - dy / 400);
+          }
+        },
+        { passive: false },
+      );
+
+      sheetEl.addEventListener(
+        "touchend",
+        () => {
+          if (!sDragging) return;
+          sDragging = false;
+          const dy = sCurrentY - sStartY;
+
+          if (dy > 80) {
+            // Fecha com animação
+            sheetEl.style.transition =
+              "transform 0.25s ease-out, opacity 0.2s ease-out";
+            sheetEl.style.transform = "translateY(110%)";
+            sheetEl.style.opacity = "0";
+            setTimeout(() => {
+              fecharFn();
+              sheetEl.style.transition = "";
+              sheetEl.style.transform = "";
+              sheetEl.style.opacity = "";
+            }, 260);
+          } else {
+            // Volta para posição original
+            sheetEl.style.transition =
+              "transform 0.25s ease-out, opacity 0.15s ease-out";
+            sheetEl.style.transform = "translateY(0)";
+            sheetEl.style.opacity = "1";
+            setTimeout(() => {
+              sheetEl.style.transition = "";
+              sheetEl.style.transform = "";
+              sheetEl.style.opacity = "";
+            }, 260);
+          }
+
+          sStartY = 0;
+          sCurrentY = 0;
+        },
+        { passive: true },
+      );
+    }
+
+    // Bottom sheet de cadastro
+    addSwipeDownDismiss(document.getElementById("bottom-sheet"), fecharSheet);
+
+    // Bottom sheet de visualização
+    addSwipeDownDismiss(
+      document.getElementById("sheet-visualizacao"),
+      fecharSheetVisualizacao,
+    );
+
+    // =============================================
+    // 3) Swipe para baixo no drum picker → fecha
+    // =============================================
+    const drumModal = document.getElementById("drum-modal");
+    let dStartY = 0;
+    let dCurrentY = 0;
+    let dDragging = false;
+
+    drumModal.addEventListener(
+      "touchstart",
+      (e) => {
+        // Não interfere com os drum columns (que já têm drag próprio)
+        if (e.target.closest(".drum-column")) return;
+        const t = e.touches[0];
+        dStartY = t.clientY;
+        dCurrentY = t.clientY;
+        dDragging = true;
+        drumModal.style.transition = "none";
+      },
+      { passive: true },
+    );
+
+    drumModal.addEventListener(
+      "touchmove",
+      (e) => {
+        if (!dDragging) return;
+        if (e.target.closest(".drum-column")) {
+          dDragging = false;
+          return;
+        }
+        const t = e.touches[0];
+        dCurrentY = t.clientY;
+        const dy = dCurrentY - dStartY;
+        if (dy > 0) {
+          e.preventDefault();
+          drumModal.style.transform = `translateY(${dy}px)`;
+        }
+      },
+      { passive: false },
+    );
+
+    drumModal.addEventListener(
+      "touchend",
+      () => {
+        if (!dDragging) return;
+        dDragging = false;
+        const dy = dCurrentY - dStartY;
+
+        if (dy > 80) {
+          drumModal.style.transition = "transform 0.25s ease-out";
+          drumModal.style.transform = "translateY(100%)";
+          setTimeout(() => {
+            fecharDrum();
+            drumModal.style.transition = "";
+            drumModal.style.transform = "";
+          }, 260);
+        } else {
+          drumModal.style.transition = "transform 0.25s ease-out";
+          drumModal.style.transform = "translateY(0)";
+          setTimeout(() => {
+            drumModal.style.transition = "";
+            drumModal.style.transform = "";
+          }, 260);
+        }
+
+        dStartY = 0;
+        dCurrentY = 0;
+      },
+      { passive: true },
+    );
+
+    // =============================================
+    // 4) Swipe para cima no dashboard (top sheet) → fecha
+    // =============================================
+    const topSheet = document.getElementById("top-sheet-stats");
+    let tStartY = 0;
+    let tCurrentY = 0;
+    let tDragging = false;
+
+    topSheet.addEventListener(
+      "touchstart",
+      (e) => {
+        const t = e.touches[0];
+        tStartY = t.clientY;
+        tCurrentY = t.clientY;
+        tDragging = true;
+        topSheet.style.transition = "none";
+      },
+      { passive: true },
+    );
+
+    topSheet.addEventListener(
+      "touchmove",
+      (e) => {
+        if (!tDragging) return;
+        const t = e.touches[0];
+        tCurrentY = t.clientY;
+        const dy = tCurrentY - tStartY;
+        // Só permite arrastar para cima (dy negativo)
+        if (dy < 0) {
+          e.preventDefault();
+          topSheet.style.transform = `translateY(${dy}px)`;
+          topSheet.style.opacity = Math.max(0.5, 1 - Math.abs(dy) / 300);
+        }
+      },
+      { passive: false },
+    );
+
+    topSheet.addEventListener(
+      "touchend",
+      () => {
+        if (!tDragging) return;
+        tDragging = false;
+        const dy = tCurrentY - tStartY;
+
+        if (dy < -60) {
+          topSheet.style.transition =
+            "transform 0.25s ease-out, opacity 0.2s ease-out";
+          topSheet.style.transform = "translateY(-110%)";
+          topSheet.style.opacity = "0";
+          setTimeout(() => {
+            fecharDashboard();
+            topSheet.style.transition = "";
+            topSheet.style.transform = "";
+            topSheet.style.opacity = "";
+          }, 260);
+        } else {
+          topSheet.style.transition =
+            "transform 0.25s ease-out, opacity 0.15s ease-out";
+          topSheet.style.transform = "";
+          topSheet.style.opacity = "1";
+          setTimeout(() => {
+            topSheet.style.transition = "";
+            topSheet.style.opacity = "";
+          }, 260);
+        }
+
+        tStartY = 0;
+        tCurrentY = 0;
+      },
+      { passive: true },
+    );
+  })();
 });

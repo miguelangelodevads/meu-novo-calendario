@@ -44,6 +44,7 @@ body {
   align-items: center;
   justify-content: space-between;
   padding: 14px 16px 8px;
+  padding-top: calc(14px + env(safe-area-inset-top, 0px));
   background-color: whitesmoke;
 }
 
@@ -180,8 +181,8 @@ body {
   display: flex;
   align-items: center;
   justify-content: center;
-  width: clamp(18px, 4vmin, 26px);
-  height: clamp(18px, 4vmin, 26px);
+  width: clamp(24px, 5.5vmin, 34px);
+  height: clamp(24px, 5.5vmin, 34px);
   border-radius: 50%;
   flex-shrink: 0;
 }
@@ -273,6 +274,7 @@ body {
   justify-content: center;
   gap: 12px;
   padding: 10px 16px 14px;
+  padding-bottom: calc(14px + env(safe-area-inset-bottom, 0px));
   background-color: whitesmoke;
   border-top: 1px solid #e0e0e0;
 }
@@ -347,6 +349,7 @@ body {
   background-color: #ffffff;
   border-radius: 20px 20px 0 0;
   padding: 12px 20px 32px;
+  padding-bottom: calc(32px + env(safe-area-inset-bottom, 0px));
   z-index: 200;
   box-shadow: 0 -4px 24px rgba(0, 0, 0, 0.12);
   transform: translateY(110%);
@@ -742,6 +745,7 @@ body {
   justify-content: flex-end;
   gap: 8px;
   padding: 12px 20px 32px;
+  padding-bottom: calc(32px + env(safe-area-inset-bottom, 0px));
   background: whitesmoke;
   position: relative;
   z-index: 4;
@@ -782,7 +786,7 @@ body {
    Visualização de Eventos do Dia — Dark
    ============================================ */
 #sheet-visualizacao {
-  padding-bottom: 30px;
+  padding-bottom: calc(30px + env(safe-area-inset-bottom, 0px));
 }
 
 .vis-lista-eventos {
@@ -888,6 +892,7 @@ body {
   border-bottom-left-radius: 16px;
   border-bottom-right-radius: 16px;
   padding: 16px;
+  padding-top: calc(16px + env(safe-area-inset-top, 0px));
   box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15);
   transform: translateY(-100%);
   transition: transform 0.3s cubic-bezier(0.25, 0.46, 0.45, 0.94);
