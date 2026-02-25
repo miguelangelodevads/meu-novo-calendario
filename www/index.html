@@ -1,0 +1,304 @@
+<!doctype html>
+<html lang="pt-br">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Calendário</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com" />
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+    <link
+      href="https://fonts.googleapis.com/css2?family=Roboto:wght@300;400;500&display=swap"
+      rel="stylesheet"
+    />
+    <link rel="stylesheet" href="style.css" />
+  </head>
+  <body>
+    <div class="calendario">
+      <!-- Cabeçalho estilo Samsung -->
+      <div class="calendario-header">
+        <div class="header-esquerda">
+          <button
+            class="btn-icone"
+            id="btn-stats"
+            aria-label="Abrir Painel de Resumo"
+          >
+            <svg
+              width="22"
+              height="22"
+              viewBox="0 0 24 24"
+              fill="none"
+              stroke="currentColor"
+              stroke-width="2"
+              stroke-linecap="round"
+              stroke-linejoin="round"
+            >
+              <line x1="3" y1="12" x2="21" y2="12"></line>
+              <line x1="3" y1="6" x2="21" y2="6"></line>
+              <line x1="3" y1="18" x2="21" y2="18"></line>
+            </svg>
+          </button>
+        </div>
+        <div class="header-centro">
+          <button class="btn-nav" id="btn-anterior" aria-label="Mês anterior">
+            &#8249;
+          </button>
+          <span class="header-mes" id="mes-display"></span>
+          <button class="btn-nav" id="btn-proximo" aria-label="Próximo mês">
+            &#8250;
+          </button>
+        </div>
+        <div class="header-direita">
+          <span class="header-ano" id="ano-display"></span>
+        </div>
+      </div>
+
+      <!-- Dias da semana -->
+      <div class="dias-semana">
+        <span class="dom">D</span>
+        <span>S</span>
+        <span>T</span>
+        <span>Q</span>
+        <span>Q</span>
+        <span>S</span>
+        <span class="sab">S</span>
+      </div>
+
+      <!-- Grade de dias -->
+      <div class="grade-dias" id="grade-dias"></div>
+
+      <!-- Barra inferior Samsung -->
+      <div class="barra-inferior" id="barra-inferior">
+        <span class="barra-texto" id="barra-texto">Adic. evento</span>
+        <button class="barra-btn-add" id="barra-btn-add">+</button>
+      </div>
+    </div>
+
+    <!-- Top Sheet: Resumo Dashboard -->
+    <div class="top-sheet" id="top-sheet-stats" role="dialog" aria-modal="true">
+      <div class="stats-header">
+        <div class="stats-titulo">
+          Resumo: <span id="stats-label-mes"></span>
+        </div>
+        <button class="btn-icone stats-close" id="btn-fechar-stats">✕</button>
+      </div>
+
+      <div class="stats-grid">
+        <div class="stats-card">
+          <div class="stats-label">Faturamento Mes</div>
+          <div class="stats-valor destaque" id="stats-fat-mes">R$ 0,00</div>
+        </div>
+        <div class="stats-card">
+          <div class="stats-label">Faturamento Ano</div>
+          <div class="stats-valor" id="stats-fat-ano">R$ 0,00</div>
+        </div>
+        <div class="stats-card">
+          <div class="stats-label">Shows este Mês</div>
+          <div class="stats-valor destaque" id="stats-qtd-mes">0</div>
+        </div>
+        <div class="stats-card">
+          <div class="stats-label">Shows no Ano</div>
+          <div class="stats-valor" id="stats-qtd-ano">0</div>
+        </div>
+      </div>
+      <div class="top-sheet-handle"></div>
+    </div>
+
+    <!-- Overlay escuro -->
+    <div class="overlay" id="overlay"></div>
+
+    <!-- Bottom Sheet: cadastro de evento -->
+    <div
+      class="bottom-sheet"
+      id="bottom-sheet"
+      role="dialog"
+      aria-modal="true"
+      aria-labelledby="sheet-titulo"
+    >
+      <div class="sheet-handle"></div>
+
+      <div class="sheet-data-selecionada" id="sheet-data-selecionada"></div>
+
+      <div class="sheet-campo" style="position: relative">
+        <input
+          type="text"
+          id="evento-titulo"
+          class="sheet-input"
+          placeholder="Adicionar título"
+          maxlength="80"
+          autocomplete="off"
+        />
+        <div class="autocomplete-sugestoes" id="autocomplete-sugestoes"></div>
+      </div>
+
+      <div class="sheet-campo sheet-campo-linha cor-seletor">
+        <span class="sheet-icone">🎨</span>
+        <div class="cor-opcoes" id="cor-opcoes">
+          <button
+            type="button"
+            class="cor-btn ativa"
+            data-cor="#1a73e8"
+            style="background: #1a73e8"
+          ></button>
+          <button
+            type="button"
+            class="cor-btn"
+            data-cor="#e53935"
+            style="background: #e53935"
+          ></button>
+          <button
+            type="button"
+            class="cor-btn"
+            data-cor="#43a047"
+            style="background: #43a047"
+          ></button>
+          <button
+            type="button"
+            class="cor-btn"
+            data-cor="#fb8c00"
+            style="background: #fb8c00"
+          ></button>
+          <button
+            type="button"
+            class="cor-btn"
+            data-cor="#8e24aa"
+            style="background: #8e24aa"
+          ></button>
+          <button
+            type="button"
+            class="cor-btn"
+            data-cor="#00acc1"
+            style="background: #00acc1"
+          ></button>
+        </div>
+      </div>
+
+      <div class="sheet-campo sheet-campo-linha">
+        <span class="sheet-icone">🕐</span>
+        <div class="sheet-horario-grupo">
+          <button
+            class="horario-btn"
+            id="btn-hora-inicio"
+            aria-label="Selecionar horário de início"
+          >
+            <span id="display-hora-inicio">08:00</span>
+          </button>
+          <span class="sheet-separador">→</span>
+          <button
+            class="horario-btn"
+            id="btn-hora-fim"
+            aria-label="Selecionar horário de fim"
+          >
+            <span id="display-hora-fim">09:00</span>
+          </button>
+        </div>
+      </div>
+
+      <div class="sheet-campo sheet-campo-linha">
+        <span class="sheet-icone">💰</span>
+        <input
+          type="text"
+          id="evento-valor"
+          class="sheet-input sheet-input-nota"
+          placeholder="Adicionar valor (ex: 150,00)"
+          maxlength="20"
+          autocomplete="off"
+        />
+      </div>
+
+      <div class="sheet-campo sheet-campo-linha">
+        <span class="sheet-icone">📍</span>
+        <input
+          type="text"
+          id="evento-local"
+          class="sheet-input sheet-input-nota"
+          placeholder="Adicionar local"
+          autocomplete="off"
+        />
+      </div>
+
+      <div class="sheet-campo sheet-campo-linha">
+        <span class="sheet-icone">📋</span>
+        <input
+          type="text"
+          id="evento-nota"
+          class="sheet-input sheet-input-nota"
+          placeholder="Adicionar nota"
+          maxlength="120"
+          autocomplete="off"
+        />
+      </div>
+
+      <div class="sheet-acoes">
+        <button class="sheet-btn sheet-btn-cancelar" id="btn-cancelar">
+          Cancelar
+        </button>
+        <button class="sheet-btn sheet-btn-salvar" id="btn-salvar">
+          Salvar
+        </button>
+      </div>
+    </div>
+
+    <!-- Bottom Sheet: Visualização de Eventos do Dia -->
+    <div
+      class="bottom-sheet"
+      id="sheet-visualizacao"
+      role="dialog"
+      aria-modal="true"
+    >
+      <div class="sheet-handle"></div>
+      <div class="sheet-data-selecionada" id="vis-data-selecionada"></div>
+
+      <div class="vis-lista-eventos" id="vis-lista-eventos">
+        <!-- Eventos serão injetados aqui via JS -->
+      </div>
+
+      <div class="sheet-acoes" style="margin-top: 20px">
+        <button
+          class="sheet-btn sheet-btn-cancelar"
+          style="
+            width: 100%;
+            border: 1px solid #1a73e8;
+            color: #1a73e8;
+            background: transparent;
+          "
+          id="btn-adicionar-novo-evento"
+        >
+          + Adicionar Novo Evento
+        </button>
+      </div>
+    </div>
+
+    <!-- Drum Picker Samsung -->
+    <div class="drum-overlay" id="drum-overlay" aria-hidden="true">
+      <div
+        class="drum-modal"
+        id="drum-modal"
+        role="dialog"
+        aria-modal="true"
+        aria-label="Selecionar horário"
+      >
+        <div class="drum-title" id="drum-title">Horário de início</div>
+        <div class="drum-container">
+          <div class="drum-column" id="drum-horas">
+            <div class="drum-track" id="drum-track-horas"></div>
+          </div>
+          <div class="drum-sep">:</div>
+          <div class="drum-column" id="drum-minutos">
+            <div class="drum-track" id="drum-track-minutos"></div>
+          </div>
+        </div>
+        <div class="drum-selection-bar"></div>
+        <div class="drum-gradient-top"></div>
+        <div class="drum-gradient-bottom"></div>
+        <div class="drum-actions">
+          <button class="drum-btn drum-btn-cancel" id="drum-cancel">
+            Cancelar
+          </button>
+          <button class="drum-btn drum-btn-ok" id="drum-ok">OK</button>
+        </div>
+      </div>
+    </div>
+
+    <script src="script.js"></script>
+  </body>
+</html>
