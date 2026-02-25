@@ -1,0 +1,54 @@
+# Redesign: Estilo Samsung Calendar (One UI)
+
+O objetivo é recriar o visual do calendário Samsung, mantendo o código simples e funcional.
+
+## Características visuais do Samsung Calendar
+
+| Elemento | Descrição |
+|---|---|
+| Fundo | Branco puro |
+| Cabeçalho | Fundo branco, texto preto/cinza escuro, com botões `<` mês `>` ano separado |
+| Dias da semana | Letras iniciais maiúsculas, cinza claro, linha fina de separação |
+| Números dos dias | Centralizados, fonte leve (`300`/`400`) |
+| Dia atual | Círculo azul/roxo Samsung sobre o número |
+| Domingo | Vermelho |
+| Sábado | Azul |
+| Separação | Linhas muito finas, quase invisíveis |
+| Tipografia | Fonte sans-serif limpa (ex: `Roboto` ou `Samsung One`) |
+
+## Proposed Changes
+
+---
+
+### Interface (HTML + CSS + JS)
+
+#### [MODIFY] [index.html](file:///c:/www/meu-novo-calendario/index.html)
+- Trocar a `div.calendario-header` simples por uma estrutura com:
+  - Linha do **ano** (pequena, cinza, acima)
+  - Linha com `< Mês >` (botões de navegação nos lados)
+- Adicionar botões `prev` e `next` para navegar entre meses
+- Adicionar `<link>` para Google Fonts (`Roboto`)
+
+#### [MODIFY] [style.css](file:///c:/www/meu-novo-calendario/style.css)
+- Fundo branco puro; remover background cinza
+- Cabeçalho branco com texto escuro como Samsung
+- Dias da semana: apenas inicial, cinza, sem background colorido
+- `td` sem bordas visíveis (separação mínima)
+- Domingo vermelho, Sábado azul
+- Bolinha do dia atual: cor `#1a73e8` (azul Samsung/Google-like)
+- Usar `Roboto` como fonte
+
+#### [MODIFY] [script.js](file:///c:/www/meu-novo-calendario/script.js)
+- Adicionar variáveis `mesAtual` e `anoAtual` como estado da página
+- Adicionar funções `mesAnterior()` e `proximoMes()` para navegar
+- Vincular os botões aos eventos de clique
+
+## Verification Plan
+
+### Manual Verification
+1. Abrir [index.html](file:///c:/www/meu-novo-calendario/index.html) no navegador
+2. Verificar se o visual se parece com o Samsung Calendar (fundo branco, header limpo, botões de navegação)
+3. Clicar nos botões `<` e `>` para navegar entre meses
+4. Verificar se o domingo aparece em vermelho e o sábado em azul
+5. Verificar se o dia atual tem a bolinha azul
+6. Testar em mobile (F12 → DevTools → modo responsivo) nas orientações retrato e paisagem

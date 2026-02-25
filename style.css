@@ -1,0 +1,885 @@
+/* ============================================
+   Reset e Base
+   ============================================ */
+*,
+*::before,
+*::after {
+  box-sizing: border-box;
+  margin: 0;
+  padding: 0;
+}
+
+html,
+body {
+  width: 100%;
+  height: 100%;
+  font-family: "Roboto", Arial, sans-serif;
+  background-color: #f5f6f8;
+  color: #1a1a1a;
+}
+
+body {
+  display: flex;
+}
+
+/* ============================================
+   Container principal — 100% da tela
+   ============================================ */
+.calendario {
+  display: flex;
+  flex-direction: column;
+  width: 100vw;
+  height: 100vh;
+  height: 100dvh;
+  background-color: #f5f6f8;
+  overflow: hidden;
+}
+
+/* ============================================
+   Cabeçalho estilo Samsung
+   ============================================ */
+.calendario-header {
+  flex-shrink: 0;
+  padding: 16px 20px 10px;
+  background-color: #f5f6f8;
+}
+.header-ano-grupo {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  margin-bottom: 2px;
+}
+
+.header-ano {
+  font-size: clamp(0.7rem, 2vw, 0.85rem);
+  font-weight: 400;
+  color: #888888;
+  letter-spacing: 0.5px;
+}
+
+.btn-icone.discreto {
+  background: transparent;
+  border: none;
+  color: #888888;
+  padding: 0;
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  margin-top: -2px; /* Ajuste fino de eixo Y para alinhar perfeitamente com 2026 */
+}
+
+.header-navegacao {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+}
+
+.header-mes {
+  font-size: clamp(1.3rem, 5vw, 2rem);
+  font-weight: 300;
+  color: #1a1a1a;
+  letter-spacing: -0.5px;
+}
+
+.btn-nav {
+  background: none;
+  border: none;
+  cursor: pointer;
+  font-size: clamp(1.6rem, 5vw, 2.2rem);
+  color: #555555;
+  line-height: 1;
+  padding: 0 8px;
+  transition: color 0.2s ease;
+  -webkit-tap-highlight-color: transparent;
+}
+
+.btn-nav:hover {
+  color: #1a73e8;
+}
+
+/* ============================================
+   Linha de dias da semana
+   ============================================ */
+.dias-semana {
+  display: grid;
+  grid-template-columns: repeat(7, 1fr);
+  flex-shrink: 0;
+  padding: 8px 0 6px;
+  border-bottom: 1px solid #eeeeee;
+}
+
+.dias-semana span {
+  text-align: center;
+  font-size: clamp(0.6rem, 2vw, 0.78rem);
+  font-weight: 500;
+  color: #888888;
+  text-transform: uppercase;
+  letter-spacing: 0.3px;
+}
+
+.dias-semana .dom {
+  color: #e53935;
+}
+
+.dias-semana .sab {
+  color: #1a73e8;
+}
+
+/* ============================================
+   Grade de dias
+   ============================================ */
+.grade-dias {
+  display: grid;
+  grid-template-columns: repeat(7, 1fr);
+  grid-auto-rows: 1fr;
+  flex: 1;
+  min-height: 0;
+}
+
+/* Cada célula de dia — layout coluna com número + eventos */
+.dia-celula {
+  display: flex;
+  flex-direction: column;
+  align-items: stretch;
+  justify-content: flex-start;
+  position: relative;
+  cursor: pointer;
+  border-bottom: 1px solid #f0f0f0;
+  border-right: 1px solid #f0f0f0;
+  padding: 4px 3px 2px;
+  overflow: hidden;
+  -webkit-tap-highlight-color: transparent;
+  transition: background-color 0.15s ease;
+}
+
+.dia-celula:hover {
+  background-color: #f7f9ff;
+}
+
+/* Linha do topo: número do dia + bolinha do dia atual */
+.dia-topo {
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  flex-shrink: 0;
+  margin-bottom: 2px;
+}
+
+/* Bolinha ao redor do número (dia atual) */
+.dia-numero-wrap {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: clamp(20px, 4.5vmin, 32px);
+  height: clamp(20px, 4.5vmin, 32px);
+  border-radius: 50%;
+  flex-shrink: 0;
+}
+
+.dia-celula:nth-child(7n + 1) .dia-numero {
+  color: #e53935;
+}
+.dia-celula:nth-child(7n) .dia-numero {
+  color: #1a73e8;
+}
+
+.dia-numero {
+  font-size: clamp(0.7rem, 2.2vmin, 1rem);
+  font-weight: 400;
+  color: #1a1a1a;
+  line-height: 1;
+  pointer-events: none;
+  text-align: center;
+}
+
+/* ============================================
+   Dia atual — bolinha azul Samsung
+   ============================================ */
+.dia-atual .dia-numero-wrap {
+  background-color: #1a73e8;
+}
+
+.dia-atual .dia-numero {
+  color: #ffffff !important;
+  font-weight: 500;
+}
+
+/* ============================================
+   Lista de eventos dentro da célula
+   ============================================ */
+.eventos-lista {
+  display: flex;
+  flex-direction: column;
+  gap: 1px;
+  overflow: hidden;
+  flex: 1;
+  min-height: 0;
+}
+
+.evento-item {
+  display: flex;
+  align-items: center;
+  gap: 3px;
+  border-radius: 3px;
+  padding: 1px 3px;
+  overflow: hidden;
+  flex-shrink: 0;
+}
+
+.evento-dot {
+  width: 6px;
+  height: 6px;
+  border-radius: 50%;
+  flex-shrink: 0;
+}
+
+.evento-texto {
+  font-size: clamp(0.47rem, 1.4vmin, 0.68rem);
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  color: #222222;
+  line-height: 1.3;
+  font-weight: 400;
+}
+
+/* "+N mais" quando há overflow */
+.evento-mais {
+  font-size: clamp(0.44rem, 1.3vmin, 0.62rem);
+  color: #888888;
+  padding: 1px 3px;
+  font-weight: 500;
+}
+
+/* ============================================
+   Overlay escuro
+   ============================================ */
+.overlay {
+  display: none;
+  position: fixed;
+  inset: 0;
+  background-color: rgba(0, 0, 0, 0.35);
+  z-index: 100;
+  animation: fadeIn 0.2s ease;
+}
+
+.overlay.ativo {
+  display: block;
+}
+
+@keyframes fadeIn {
+  from {
+    opacity: 0;
+  }
+  to {
+    opacity: 1;
+  }
+}
+
+/* ============================================
+   Bottom Sheet — estilo Samsung
+   ============================================ */
+.bottom-sheet {
+  position: fixed;
+  bottom: 0;
+  left: 0;
+  right: 0;
+  background-color: #ffffff;
+  border-radius: 20px 20px 0 0;
+  padding: 12px 20px 32px;
+  z-index: 200;
+  box-shadow: 0 -4px 24px rgba(0, 0, 0, 0.12);
+  transform: translateY(110%);
+  transition: transform 0.3s cubic-bezier(0.32, 0.72, 0, 1);
+}
+
+.bottom-sheet.ativo {
+  transform: translateY(0);
+}
+
+/* Barra de arrasto topo */
+.sheet-handle {
+  width: 40px;
+  height: 4px;
+  background-color: #dddddd;
+  border-radius: 2px;
+  margin: 0 auto 16px;
+}
+
+/* Data selecionada */
+.sheet-data-selecionada {
+  font-size: 0.82rem;
+  font-weight: 500;
+  color: #1a73e8;
+  text-transform: uppercase;
+  letter-spacing: 0.6px;
+  margin-bottom: 14px;
+}
+
+/* Campos do formulário */
+.sheet-campo {
+  margin-bottom: 14px;
+}
+
+.sheet-campo-linha {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+}
+
+.sheet-icone {
+  font-size: 1.1rem;
+  flex-shrink: 0;
+}
+
+/* Input de título */
+.sheet-input {
+  width: 100%;
+  border: none;
+  border-bottom: 1.5px solid #e0e0e0;
+  outline: none;
+  font-family: "Roboto", Arial, sans-serif;
+  font-size: 1.05rem;
+  font-weight: 400;
+  color: #1a1a1a;
+  padding: 4px 0 8px;
+  background: transparent;
+  transition: border-color 0.2s ease;
+}
+
+.sheet-input:focus {
+  border-bottom-color: #1a73e8;
+}
+
+.sheet-input::placeholder {
+  color: #aaaaaa;
+  font-weight: 300;
+}
+
+.sheet-input-nota {
+  font-size: 0.9rem;
+}
+
+/* Inputs de horário */
+.sheet-horario-grupo {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+
+.sheet-input-horario {
+  border: none;
+  border-bottom: 1.5px solid #e0e0e0;
+  outline: none;
+  font-family: "Roboto", Arial, sans-serif;
+  font-size: 0.9rem;
+  color: #555555;
+  padding: 2px 0 4px;
+  background: transparent;
+  cursor: pointer;
+  transition: border-color 0.2s ease;
+}
+
+.sheet-input-horario:focus {
+  border-bottom-color: #1a73e8;
+  color: #1a73e8;
+}
+
+.sheet-separador {
+  color: #aaaaaa;
+  font-size: 0.85rem;
+}
+
+/* Autocomplete de Sugestões */
+.autocomplete-sugestoes {
+  display: none;
+  position: absolute;
+  top: 100%;
+  left: 0;
+  right: 0;
+  background: #fff;
+  border: 1px solid #e0e0e0;
+  border-radius: 8px;
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.12);
+  z-index: 100;
+  max-height: 180px;
+  overflow-y: auto;
+}
+
+.autocomplete-sugestoes.visivel {
+  display: block;
+}
+
+.autocomplete-item {
+  padding: 10px 14px;
+  cursor: pointer;
+  border-bottom: 1px solid #f0f0f0;
+  transition: background-color 0.15s;
+}
+
+.autocomplete-item:last-child {
+  border-bottom: none;
+}
+
+.autocomplete-item:hover,
+.autocomplete-item:active {
+  background-color: #f0f4ff;
+}
+
+.autocomplete-item-titulo {
+  font-weight: 500;
+  font-size: 0.9rem;
+  color: #333;
+}
+
+.autocomplete-item-info {
+  font-size: 0.75rem;
+  color: #888;
+  margin-top: 2px;
+}
+
+/* Botões de ação */
+.sheet-acoes {
+  display: flex;
+  justify-content: flex-end;
+  gap: 10px;
+  margin-top: 20px;
+}
+
+.sheet-btn {
+  border: none;
+  border-radius: 24px;
+  padding: 10px 24px;
+  font-family: "Roboto", Arial, sans-serif;
+  font-size: 0.9rem;
+  font-weight: 500;
+  cursor: pointer;
+  transition:
+    background-color 0.2s ease,
+    opacity 0.2s ease;
+}
+
+.sheet-btn-cancelar {
+  background-color: #f0f0f0;
+  color: #555555;
+}
+
+.sheet-btn-cancelar:hover {
+  background-color: #e5e5e5;
+}
+
+.sheet-btn-salvar {
+  background-color: #1a73e8;
+  color: #ffffff;
+}
+
+.sheet-btn-salvar:hover {
+  background-color: #1558b0;
+}
+
+/* ============================================
+   Botão de horário (substitui input type=time)
+   ============================================ */
+.horario-btn {
+  background: none;
+  border: none;
+  border-bottom: 1.5px solid #e0e0e0;
+  outline: none;
+  font-family: "Roboto", Arial, sans-serif;
+  font-size: 0.9rem;
+  color: #1a73e8;
+  padding: 4px 4px 6px;
+  cursor: pointer;
+  font-weight: 500;
+  letter-spacing: 0.3px;
+  transition: border-color 0.2s ease;
+  -webkit-tap-highlight-color: transparent;
+}
+
+.horario-btn:hover {
+  border-bottom-color: #1a73e8;
+}
+
+/* ============================================
+   Drum Picker Overlay
+   ============================================ */
+.drum-overlay {
+  display: none;
+  position: fixed;
+  inset: 0;
+  background: rgba(0, 0, 0, 0.55);
+  z-index: 500;
+  align-items: flex-end;
+  justify-content: center;
+  animation: fadeIn 0.18s ease;
+}
+
+.drum-overlay.ativo {
+  display: flex;
+}
+
+/* Modal escuro estilo Samsung */
+.drum-modal {
+  width: 100%;
+  max-width: 420px;
+  background: #1c1c1e;
+  border-radius: 20px 20px 0 0;
+  padding: 20px 0 0;
+  position: relative;
+  overflow: hidden;
+  transform: translateY(100%);
+  transition: transform 0.3s cubic-bezier(0.32, 0.72, 0, 1);
+}
+
+.drum-overlay.ativo .drum-modal {
+  transform: translateY(0);
+}
+
+.drum-title {
+  font-size: 0.82rem;
+  font-weight: 500;
+  color: #888;
+  text-align: center;
+  letter-spacing: 0.6px;
+  text-transform: uppercase;
+  margin-bottom: 8px;
+}
+
+/* Container das colunas */
+.drum-container {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 0;
+  height: 200px;
+  position: relative;
+}
+
+/* Cada coluna é uma janela de scroll */
+.drum-column {
+  width: 110px;
+  height: 200px;
+  overflow: hidden;
+  position: relative;
+  cursor: grab;
+  user-select: none;
+}
+
+.drum-column:active {
+  cursor: grabbing;
+}
+
+/* A faixa interna que se move */
+.drum-track {
+  display: flex;
+  flex-direction: column;
+  transition: transform 0.15s cubic-bezier(0.25, 0.46, 0.45, 0.94);
+  will-change: transform;
+}
+
+/* Cada item da roda */
+.drum-item {
+  height: 56px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 2.4rem;
+  font-weight: 300;
+  color: #fff;
+  flex-shrink: 0;
+  letter-spacing: -1px;
+  transition:
+    color 0.15s ease,
+    font-size 0.15s ease,
+    font-weight 0.15s ease;
+}
+
+.drum-item.selecionado {
+  font-size: 2.8rem;
+  font-weight: 400;
+  color: #ffffff;
+}
+
+.drum-item.adjacente {
+  color: #5a5a5e;
+  font-size: 2.1rem;
+}
+
+.drum-item.distante {
+  color: #333336;
+  font-size: 1.7rem;
+}
+
+/* Separador ":" */
+.drum-sep {
+  font-size: 2.6rem;
+  font-weight: 300;
+  color: #ffffff;
+  line-height: 1;
+  padding: 0 4px;
+  margin-bottom: 4px;
+  user-select: none;
+}
+
+/* Linha de seleção horizontal */
+.drum-selection-bar {
+  position: absolute;
+  top: calc(50% - 28px + 20px); /* 20px = drum-title height aprox */
+  left: 0;
+  right: 0;
+  height: 56px;
+  border-top: 1.5px solid #3a3a3c;
+  border-bottom: 1.5px solid #3a3a3c;
+  pointer-events: none;
+  z-index: 2;
+}
+
+/* Gradiente desfoque superior */
+.drum-gradient-top {
+  position: absolute;
+  top: 44px; /* abaixo do título */
+  left: 0;
+  right: 0;
+  height: 68px;
+  background: linear-gradient(to bottom, #1c1c1e 0%, transparent 100%);
+  pointer-events: none;
+  z-index: 3;
+}
+
+/* Gradiente desfoque inferior */
+.drum-gradient-bottom {
+  position: absolute;
+  bottom: 60px; /* acima dos botões */
+  left: 0;
+  right: 0;
+  height: 68px;
+  background: linear-gradient(to top, #1c1c1e 0%, transparent 100%);
+  pointer-events: none;
+  z-index: 3;
+}
+
+/* Botões Cancelar / OK */
+.drum-actions {
+  display: flex;
+  justify-content: flex-end;
+  gap: 8px;
+  padding: 12px 20px 32px;
+  background: #1c1c1e;
+  position: relative;
+  z-index: 4;
+}
+
+.drum-btn {
+  border: none;
+  border-radius: 20px;
+  padding: 10px 28px;
+  font-family: "Roboto", Arial, sans-serif;
+  font-size: 0.95rem;
+  font-weight: 500;
+  cursor: pointer;
+  transition: opacity 0.2s ease;
+}
+
+.drum-btn-cancel {
+  background: #2c2c2e;
+  color: #aaa;
+}
+
+.drum-btn-cancel:hover {
+  opacity: 0.75;
+}
+
+.drum-btn-ok {
+  font-weight: 500;
+  color: #fff;
+  background-color: #1a73e8;
+  border: none;
+}
+
+.drum-btn-ok:active {
+  background-color: #1558b0;
+}
+
+/* ============================================
+   Visualização de Eventos do Dia
+   ============================================ */
+#sheet-visualizacao {
+  padding-bottom: 30px;
+}
+
+.vis-lista-eventos {
+  margin-top: 15px;
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+  max-height: 50vh;
+  overflow-y: auto;
+}
+
+.vis-evento-card {
+  background: #f8f9fa;
+  border: 1px solid #e0e0e0;
+  border-radius: 8px;
+  padding: 12px;
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+  border-left: 4px solid #1a73e8;
+}
+
+.vis-evento-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: flex-start;
+}
+
+.vis-evento-titulo {
+  font-weight: 500;
+  font-size: 1rem;
+  color: #333;
+  margin-right: 8px;
+}
+
+.vis-evento-acoes {
+  display: flex;
+  gap: 6px;
+  flex-shrink: 0;
+}
+
+.vis-btn-acao {
+  background: none;
+  border: none;
+  font-size: 1.1rem;
+  cursor: pointer;
+  padding: 4px;
+  border-radius: 4px;
+  transition: background-color 0.2s ease;
+  line-height: 1;
+}
+
+.vis-btn-acao:active {
+  background-color: #e0e0e0;
+}
+
+.vis-evento-horario {
+  font-size: 0.85rem;
+  color: #666;
+  font-weight: 500;
+  margin-top: -2px;
+}
+
+.vis-evento-detalhe {
+  font-size: 0.9rem;
+  color: #555;
+  display: flex;
+  align-items: center;
+  gap: 6px;
+}
+
+.vis-btn-waze {
+  margin-top: 4px;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 6px;
+  background-color: #33ccff;
+  color: #005a80;
+  padding: 8px 12px;
+  border-radius: 6px;
+  text-decoration: none;
+  font-weight: 500;
+  font-size: 0.9rem;
+  border: none;
+  cursor: pointer;
+  transition: opacity 0.2s;
+}
+
+.vis-btn-waze:hover {
+  opacity: 0.9;
+}
+
+/* ============================================
+   Top Sheet (Estatísticas)
+   ============================================ */
+.top-sheet {
+  position: fixed;
+  top: 0;
+  left: 0;
+  width: 100%;
+  background-color: #ffffff;
+  border-bottom-left-radius: 16px;
+  border-bottom-right-radius: 16px;
+  padding: 16px;
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15);
+  transform: translateY(-100%);
+  transition: transform 0.3s cubic-bezier(0.25, 0.46, 0.45, 0.94);
+  z-index: 200;
+  padding-bottom: 24px;
+}
+
+.top-sheet.ativo {
+  transform: translateY(0);
+}
+
+.stats-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 20px;
+}
+
+.stats-titulo {
+  font-size: 1.1rem;
+  font-weight: 500;
+  color: #1a1a1a;
+}
+
+.stats-close {
+  color: #555;
+  font-size: 1.1rem;
+}
+
+.stats-grid {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 12px;
+}
+
+.stats-card {
+  background: #f8f9fa;
+  border: 1px solid #e0e0e0;
+  border-radius: 8px;
+  padding: 12px;
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+  text-align: center;
+}
+
+.stats-label {
+  font-size: 0.8rem;
+  color: #666;
+  font-weight: 500;
+  text-transform: uppercase;
+  letter-spacing: 0.5px;
+}
+
+.stats-valor {
+  font-size: 1.1rem;
+  color: #333;
+  font-weight: 500;
+}
+
+.stats-valor.destaque {
+  color: #1a73e8;
+  font-size: 1.3rem;
+  font-weight: 500;
+}
+
+.top-sheet-handle {
+  width: 36px;
+  height: 4px;
+  background-color: #e0e0e0;
+  border-radius: 2px;
+  margin: 16px auto 0;
+}
