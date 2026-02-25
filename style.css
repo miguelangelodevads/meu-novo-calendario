@@ -14,7 +14,7 @@ body {
   width: 100%;
   height: 100%;
   font-family: "Roboto", Arial, sans-serif;
-  background-color: #f5f6f8;
+  background-color: whitesmoke;
   color: #1a1a1a;
 }
 
@@ -23,7 +23,7 @@ body {
 }
 
 /* ============================================
-   Container principal — 100% da tela
+   Container principal
    ============================================ */
 .calendario {
   display: flex;
@@ -31,90 +31,94 @@ body {
   width: 100vw;
   height: 100vh;
   height: 100dvh;
-  background-color: #f5f6f8;
+  background-color: whitesmoke;
   overflow: hidden;
 }
 
 /* ============================================
-   Cabeçalho estilo Samsung
+   Cabeçalho Samsung Dark
    ============================================ */
 .calendario-header {
   flex-shrink: 0;
-  padding: 16px 20px 10px;
-  background-color: #f5f6f8;
-}
-.header-ano-grupo {
-  display: flex;
-  align-items: center;
-  gap: 8px;
-  margin-bottom: 2px;
-}
-
-.header-ano {
-  font-size: clamp(0.7rem, 2vw, 0.85rem);
-  font-weight: 400;
-  color: #888888;
-  letter-spacing: 0.5px;
-}
-
-.btn-icone.discreto {
-  background: transparent;
-  border: none;
-  color: #888888;
-  padding: 0;
-  cursor: pointer;
-  display: flex;
-  align-items: center;
-  margin-top: -2px; /* Ajuste fino de eixo Y para alinhar perfeitamente com 2026 */
-}
-
-.header-navegacao {
   display: flex;
   align-items: center;
   justify-content: space-between;
+  padding: 14px 16px 8px;
+  background-color: whitesmoke;
+}
+
+.header-esquerda {
+  display: flex;
+  align-items: center;
+}
+
+.header-centro {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+}
+
+.header-direita {
+  display: flex;
+  align-items: center;
+}
+
+.btn-icone {
+  background: transparent;
+  border: none;
+  color: #555555;
+  padding: 4px;
+  cursor: pointer;
+  display: flex;
+  align-items: center;
 }
 
 .header-mes {
-  font-size: clamp(1.3rem, 5vw, 2rem);
-  font-weight: 300;
+  font-size: clamp(1.4rem, 5vw, 1.8rem);
+  font-weight: 400;
   color: #1a1a1a;
-  letter-spacing: -0.5px;
+  letter-spacing: 0.5px;
+}
+
+.header-ano {
+  font-size: clamp(0.75rem, 2vw, 0.9rem);
+  font-weight: 400;
+  color: #666666;
 }
 
 .btn-nav {
   background: none;
   border: none;
   cursor: pointer;
-  font-size: clamp(1.6rem, 5vw, 2.2rem);
+  font-size: clamp(1.4rem, 4vw, 1.8rem);
   color: #555555;
   line-height: 1;
-  padding: 0 8px;
+  padding: 0 4px;
   transition: color 0.2s ease;
   -webkit-tap-highlight-color: transparent;
 }
 
 .btn-nav:hover {
-  color: #1a73e8;
+  color: #ffffff;
 }
 
 /* ============================================
-   Linha de dias da semana
+   Dias da semana
    ============================================ */
 .dias-semana {
   display: grid;
   grid-template-columns: repeat(7, 1fr);
   flex-shrink: 0;
   padding: 8px 0 6px;
-  border-bottom: 1px solid #eeeeee;
+  border-bottom: 1px solid #e0e0e0;
 }
 
 .dias-semana span {
   text-align: center;
-  font-size: clamp(0.6rem, 2vw, 0.78rem);
+  padding-left: 0;
+  font-size: clamp(0.75rem, 2.5vw, 0.95rem);
   font-weight: 500;
   color: #888888;
-  text-transform: uppercase;
-  letter-spacing: 0.3px;
 }
 
 .dias-semana .dom {
@@ -122,7 +126,7 @@ body {
 }
 
 .dias-semana .sab {
-  color: #1a73e8;
+  color: #4fc3f7;
 }
 
 /* ============================================
@@ -136,7 +140,7 @@ body {
   min-height: 0;
 }
 
-/* Cada célula de dia — layout coluna com número + eventos */
+/* Cada célula */
 .dia-celula {
   display: flex;
   flex-direction: column;
@@ -144,9 +148,8 @@ body {
   justify-content: flex-start;
   position: relative;
   cursor: pointer;
-  border-bottom: 1px solid #f0f0f0;
-  border-right: 1px solid #f0f0f0;
-  padding: 4px 3px 2px;
+  border-bottom: 1px solid #e0e0e0;
+  padding: 3px 2px 1px;
   overflow: hidden;
   -webkit-tap-highlight-color: rgba(26, 115, 232, 0.08);
   touch-action: manipulation;
@@ -156,33 +159,34 @@ body {
 }
 
 .dia-celula:hover {
-  background-color: #f7f9ff;
+  background-color: rgba(0, 0, 0, 0.03);
 }
 
 .dia-celula * {
   pointer-events: none;
 }
 
-/* Linha do topo: número do dia + bolinha do dia atual */
+/* Número do dia — alinhado à esquerda como Samsung */
 .dia-topo {
   display: flex;
   justify-content: center;
   align-items: center;
   flex-shrink: 0;
-  margin-bottom: 2px;
+  margin-bottom: 1px;
+  padding-left: 0;
 }
 
-/* Bolinha ao redor do número (dia atual) */
 .dia-numero-wrap {
   display: flex;
   align-items: center;
   justify-content: center;
-  width: clamp(20px, 4.5vmin, 32px);
-  height: clamp(20px, 4.5vmin, 32px);
+  width: clamp(18px, 4vmin, 26px);
+  height: clamp(18px, 4vmin, 26px);
   border-radius: 50%;
   flex-shrink: 0;
 }
 
+/* Cores dos dias da semana */
 .dia-celula:nth-child(7n + 1) .dia-numero {
   color: #e53935;
 }
@@ -191,16 +195,15 @@ body {
 }
 
 .dia-numero {
-  font-size: clamp(0.7rem, 2.2vmin, 1rem);
-  font-weight: 400;
+  font-size: clamp(0.9rem, 3.2vmin, 1.15rem);
+  font-weight: 500;
   color: #1a1a1a;
   line-height: 1;
   pointer-events: none;
-  text-align: center;
 }
 
 /* ============================================
-   Dia atual — bolinha azul Samsung
+   Dia atual — círculo Samsung
    ============================================ */
 .dia-atual .dia-numero-wrap {
   background-color: #1a73e8;
@@ -212,7 +215,7 @@ body {
 }
 
 /* ============================================
-   Lista de eventos dentro da célula
+   Eventos dentro da célula — blocos coloridos Samsung
    ============================================ */
 .eventos-lista {
   display: flex;
@@ -221,42 +224,90 @@ body {
   overflow: hidden;
   flex: 1;
   min-height: 0;
-  pointer-events: none; /* Permite que o toque passe direto para a célula pai */
+  pointer-events: none;
 }
 
 .evento-item {
   display: flex;
   align-items: center;
-  gap: 3px;
-  border-radius: 3px;
-  padding: 1px 3px;
+  gap: 0;
+  border-radius: 0;
+  padding: 1px 4px;
   overflow: hidden;
   flex-shrink: 0;
+  border-left: 3px solid #1a73e8;
+  background: transparent;
 }
 
 .evento-dot {
-  width: 6px;
-  height: 6px;
-  border-radius: 50%;
-  flex-shrink: 0;
+  display: none; /* Samsung usa blocos, não dots */
 }
 
 .evento-texto {
-  font-size: clamp(0.47rem, 1.4vmin, 0.68rem);
-  white-space: nowrap;
+  font-size: clamp(0.62rem, 1.8vmin, 0.82rem);
+  display: -webkit-box;
+  -webkit-line-clamp: 2;
+  -webkit-box-orient: vertical;
   overflow: hidden;
-  text-overflow: ellipsis;
   color: #222222;
-  line-height: 1.3;
+  line-height: 1.25;
   font-weight: 400;
 }
 
-/* "+N mais" quando há overflow */
+/* "+N" quando há overflow */
 .evento-mais {
-  font-size: clamp(0.44rem, 1.3vmin, 0.62rem);
+  font-size: clamp(0.44rem, 1.3vmin, 0.6rem);
   color: #888888;
-  padding: 1px 3px;
+  padding: 0 3px;
   font-weight: 500;
+}
+
+/* ============================================
+   Barra inferior Samsung
+   ============================================ */
+.barra-inferior {
+  flex-shrink: 0;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 12px;
+  padding: 10px 16px 14px;
+  background-color: whitesmoke;
+  border-top: 1px solid #e0e0e0;
+}
+
+.barra-texto {
+  font-size: 0.85rem;
+  color: #666;
+  font-weight: 400;
+  background: #e8e8e8;
+  padding: 8px 24px;
+  border-radius: 20px;
+  flex: 1;
+  text-align: center;
+}
+
+.barra-btn-add {
+  width: 40px;
+  height: 40px;
+  border-radius: 50%;
+  background-color: #1a73e8;
+  color: #ffffff;
+  border: none;
+  font-size: 1.5rem;
+  font-weight: 300;
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  flex-shrink: 0;
+  transition: background-color 0.2s;
+  -webkit-tap-highlight-color: transparent;
+  touch-action: manipulation;
+}
+
+.barra-btn-add:active {
+  background-color: #1558b0;
 }
 
 /* ============================================
@@ -266,7 +317,7 @@ body {
   display: none;
   position: fixed;
   inset: 0;
-  background-color: rgba(0, 0, 0, 0.35);
+  background-color: rgba(0, 0, 0, 0.6);
   z-index: 100;
   animation: fadeIn 0.2s ease;
 }
@@ -285,7 +336,7 @@ body {
 }
 
 /* ============================================
-   Bottom Sheet — estilo Samsung
+   Bottom Sheet — Dark Samsung
    ============================================ */
 .bottom-sheet {
   position: fixed;
@@ -305,7 +356,6 @@ body {
   transform: translateY(0);
 }
 
-/* Barra de arrasto topo */
 .sheet-handle {
   width: 40px;
   height: 4px;
@@ -314,7 +364,6 @@ body {
   margin: 0 auto 16px;
 }
 
-/* Data selecionada */
 .sheet-data-selecionada {
   font-size: 0.82rem;
   font-weight: 500;
@@ -340,7 +389,6 @@ body {
   flex-shrink: 0;
 }
 
-/* Input de título */
 .sheet-input {
   width: 100%;
   border: none;
@@ -368,7 +416,7 @@ body {
   font-size: 0.9rem;
 }
 
-/* Inputs de horário */
+/* Horários */
 .sheet-horario-grupo {
   display: flex;
   align-items: center;
@@ -381,7 +429,7 @@ body {
   outline: none;
   font-family: "Roboto", Arial, sans-serif;
   font-size: 0.9rem;
-  color: #555555;
+  color: #888;
   padding: 2px 0 4px;
   background: transparent;
   cursor: pointer;
@@ -394,18 +442,18 @@ body {
 }
 
 .sheet-separador {
-  color: #aaaaaa;
+  color: #aaa;
   font-size: 0.85rem;
 }
 
-/* Autocomplete de Sugestões */
+/* Autocomplete de Sugestões — Dark */
 .autocomplete-sugestoes {
   display: none;
   position: absolute;
   top: 100%;
   left: 0;
   right: 0;
-  background: #fff;
+  background: #ffffff;
   border: 1px solid #e0e0e0;
   border-radius: 8px;
   box-shadow: 0 4px 12px rgba(0, 0, 0, 0.12);
@@ -444,6 +492,35 @@ body {
   font-size: 0.75rem;
   color: #888;
   margin-top: 2px;
+}
+
+/* Seletor de cor */
+.cor-opcoes {
+  display: flex;
+  gap: 10px;
+  align-items: center;
+}
+
+.cor-btn {
+  width: 24px;
+  height: 24px;
+  border-radius: 50%;
+  border: 2px solid transparent;
+  cursor: pointer;
+  transition:
+    border-color 0.15s,
+    transform 0.15s;
+  padding: 0;
+  outline: none;
+}
+
+.cor-btn:hover {
+  transform: scale(1.15);
+}
+
+.cor-btn.ativa {
+  border-color: #333333;
+  transform: scale(1.15);
 }
 
 /* Botões de ação */
@@ -486,7 +563,7 @@ body {
 }
 
 /* ============================================
-   Botão de horário (substitui input type=time)
+   Botão de horário
    ============================================ */
 .horario-btn {
   background: none;
@@ -526,11 +603,10 @@ body {
   display: flex;
 }
 
-/* Modal escuro estilo Samsung */
 .drum-modal {
   width: 100%;
   max-width: 420px;
-  background: #1c1c1e;
+  background: whitesmoke;
   border-radius: 20px 20px 0 0;
   padding: 20px 0 0;
   position: relative;
@@ -553,7 +629,6 @@ body {
   margin-bottom: 8px;
 }
 
-/* Container das colunas */
 .drum-container {
   display: flex;
   align-items: center;
@@ -563,7 +638,6 @@ body {
   position: relative;
 }
 
-/* Cada coluna é uma janela de scroll */
 .drum-column {
   width: 110px;
   height: 200px;
@@ -577,7 +651,6 @@ body {
   cursor: grabbing;
 }
 
-/* A faixa interna que se move */
 .drum-track {
   display: flex;
   flex-direction: column;
@@ -585,7 +658,6 @@ body {
   will-change: transform;
 }
 
-/* Cada item da roda */
 .drum-item {
   height: 56px;
   display: flex;
@@ -593,7 +665,7 @@ body {
   justify-content: center;
   font-size: 2.4rem;
   font-weight: 300;
-  color: #fff;
+  color: #1a1a1a;
   flex-shrink: 0;
   letter-spacing: -1px;
   transition:
@@ -605,74 +677,71 @@ body {
 .drum-item.selecionado {
   font-size: 2.8rem;
   font-weight: 400;
-  color: #ffffff;
+  color: #1a1a1a;
 }
 
 .drum-item.adjacente {
-  color: #5a5a5e;
+  color: #bbb;
   font-size: 2.1rem;
 }
 
 .drum-item.distante {
-  color: #333336;
+  color: #ddd;
   font-size: 1.7rem;
 }
 
-/* Separador ":" */
 .drum-sep {
   font-size: 2.6rem;
   font-weight: 300;
-  color: #ffffff;
+  color: #1a1a1a;
   line-height: 1;
   padding: 0 4px;
-  margin-bottom: 4px;
+  height: 56px;
+  display: flex;
+  align-items: center;
   user-select: none;
 }
 
-/* Linha de seleção horizontal */
 .drum-selection-bar {
   position: absolute;
-  top: calc(50% - 28px + 20px); /* 20px = drum-title height aprox */
+  top: calc(50% - 28px + 20px);
   left: 0;
   right: 0;
   height: 56px;
-  border-top: 1.5px solid #3a3a3c;
-  border-bottom: 1.5px solid #3a3a3c;
+  border-top: none;
+  border-bottom: none;
   pointer-events: none;
   z-index: 2;
 }
 
-/* Gradiente desfoque superior */
 .drum-gradient-top {
   position: absolute;
-  top: 44px; /* abaixo do título */
+  top: 44px;
   left: 0;
   right: 0;
   height: 68px;
-  background: linear-gradient(to bottom, #1c1c1e 0%, transparent 100%);
+  background: linear-gradient(to bottom, whitesmoke 0%, transparent 100%);
   pointer-events: none;
   z-index: 3;
 }
 
-/* Gradiente desfoque inferior */
 .drum-gradient-bottom {
   position: absolute;
-  bottom: 60px; /* acima dos botões */
+  bottom: 60px;
   left: 0;
   right: 0;
   height: 68px;
-  background: linear-gradient(to top, #1c1c1e 0%, transparent 100%);
+  background: linear-gradient(to top, whitesmoke 0%, transparent 100%);
   pointer-events: none;
   z-index: 3;
 }
 
-/* Botões Cancelar / OK */
 .drum-actions {
   display: flex;
   justify-content: flex-end;
   gap: 8px;
   padding: 12px 20px 32px;
-  background: #1c1c1e;
+  background: whitesmoke;
   position: relative;
   z-index: 4;
 }
@@ -689,8 +758,8 @@ body {
 }
 
 .drum-btn-cancel {
-  background: #2c2c2e;
-  color: #aaa;
+  background: #e0e0e0;
+  color: #555;
 }
 
 .drum-btn-cancel:hover {
@@ -709,7 +778,7 @@ body {
 }
 
 /* ============================================
-   Visualização de Eventos do Dia
+   Visualização de Eventos do Dia — Dark
    ============================================ */
 #sheet-visualizacao {
   padding-bottom: 30px;
@@ -791,7 +860,7 @@ body {
   justify-content: center;
   gap: 6px;
   background-color: #33ccff;
-  color: #005a80;
+  color: #003d57;
   padding: 8px 12px;
   border-radius: 6px;
   text-decoration: none;
@@ -807,7 +876,7 @@ body {
 }
 
 /* ============================================
-   Top Sheet (Estatísticas)
+   Top Sheet (Estatísticas) — Dark
    ============================================ */
 .top-sheet {
   position: fixed;
@@ -843,8 +912,11 @@ body {
 }
 
 .stats-close {
-  color: #555;
+  color: #888;
   font-size: 1.1rem;
+  background: none;
+  border: none;
+  cursor: pointer;
 }
 
 .stats-grid {
@@ -866,7 +938,7 @@ body {
 
 .stats-label {
   font-size: 0.8rem;
-  color: #666;
+  color: #888;
   font-weight: 500;
   text-transform: uppercase;
   letter-spacing: 0.5px;

@@ -42,6 +42,21 @@ const meses = [
   "Dezembro",
 ];
 
+const mesesAbrev = [
+  "JAN.",
+  "FEV.",
+  "MAR.",
+  "ABR.",
+  "MAI.",
+  "JUN.",
+  "JUL.",
+  "AGO.",
+  "SET.",
+  "OUT.",
+  "NOV.",
+  "DEZ.",
+];
+
 const diasSemanaLabel = [
   "domingo",
   "segunda-feira",
@@ -68,7 +83,8 @@ function renderCalendario() {
   const mesHoje = hoje.getMonth();
   const anoHoje = hoje.getFullYear();
 
-  document.getElementById("mes-display").textContent = meses[mesVisualizado];
+  document.getElementById("mes-display").textContent =
+    mesesAbrev[mesVisualizado];
   document.getElementById("ano-display").textContent = anoVisualizado;
 
   const primeiroDia = new Date(anoVisualizado, mesVisualizado, 1).getDay();
@@ -121,23 +137,19 @@ function renderCalendario() {
     listaEl.classList.add("eventos-lista");
 
     // Quantos eventos caber visualmente (estimativa: ~3 por célula)
-    const MAX_VISIVEIS = 3;
+    const MAX_VISIVEIS = 4;
     const visiveis = lista.slice(0, MAX_VISIVEIS);
     const extras = lista.length - MAX_VISIVEIS;
 
     visiveis.forEach((ev) => {
       const item = document.createElement("div");
       item.classList.add("evento-item");
-
-      const dot = document.createElement("span");
-      dot.classList.add("evento-dot");
-      dot.style.backgroundColor = ev.cor;
+      item.style.borderLeftColor = ev.cor || "#1a73e8";
 
       const texto = document.createElement("span");
       texto.classList.add("evento-texto");
       texto.textContent = ev.titulo;
 
-      item.appendChild(dot);
       item.appendChild(texto);
       listaEl.appendChild(item);
     });
@@ -294,6 +306,8 @@ function abrirSheet(dia) {
       eventoEmEdicao.horaInicio;
     document.getElementById("display-hora-fim").textContent =
       eventoEmEdicao.horaFim;
+    // Selecionar a cor do evento
+    selecionarCorBtn(eventoEmEdicao.cor || "#1a73e8");
   } else {
     document.getElementById("evento-titulo").value = "";
     document.getElementById("evento-valor").value = "";
@@ -301,6 +315,7 @@ function abrirSheet(dia) {
     document.getElementById("evento-nota").value = "";
     document.getElementById("display-hora-inicio").textContent = "08:00";
     document.getElementById("display-hora-fim").textContent = "09:00";
+    selecionarCorBtn("#1a73e8");
   }
 
   document.getElementById("bottom-sheet").classList.add("ativo");
@@ -547,7 +562,7 @@ function salvarEvento() {
   if (!eventos[chave]) eventos[chave] = [];
 
   if (eventoEmEdicao) {
-    // Atualiza o evento existente preservando o ID e a Cor originais
+    // Atualiza o evento existente
     const updateEvent = eventos[eventoEmEdicao.chave][eventoEmEdicao.index];
     updateEvent.titulo = titulo;
     updateEvent.valor = valor;
@@ -555,10 +570,11 @@ function salvarEvento() {
     updateEvent.horaInicio = horaInicio;
     updateEvent.horaFim = horaFim;
     updateEvent.nota = nota;
+    updateEvent.cor = obterCorSelecionada();
   } else {
     // Criando evento novo
-    const cor = corEvento(eventos[chave].length);
-    const idUnico = Date.now().toString(); // ID baseado em timestamp
+    const cor = obterCorSelecionada();
+    const idUnico = Date.now().toString();
     eventos[chave].push({
       id: idUnico,
       titulo,
@@ -871,6 +887,31 @@ function confirmarDrum() {
 }
 
 // ============================================================
+// Seletor de Cor
+// ============================================================
+function obterCorSelecionada() {
+  const ativa = document.querySelector(".cor-btn.ativa");
+  return ativa ? ativa.dataset.cor : "#1a73e8";
+}
+
+function selecionarCorBtn(cor) {
+  document.querySelectorAll(".cor-btn").forEach((btn) => {
+    btn.classList.toggle("ativa", btn.dataset.cor === cor);
+  });
+}
+
+// ============================================================
+// Barra inferior Samsung
+// ============================================================
+function atualizarBarraInferior() {
+  const hoje = new Date();
+  const dia = hoje.getDate();
+  const mesAbrev = mesesAbrev[hoje.getMonth()].toLowerCase().replace(".", "");
+  const el = document.getElementById("barra-texto");
+  if (el) el.textContent = `Adic. evento em ${dia} de ${mesAbrev}.`;
+}
+
+// ============================================================
 // Autocomplete: Sugestões de Eventos Anteriores
 // ============================================================
 function obterEventosUnicos() {
@@ -1016,6 +1057,16 @@ document.addEventListener("DOMContentLoaded", () => {
   document.getElementById("drum-cancel").addEventListener("click", fecharDrum);
   document.getElementById("drum-ok").addEventListener("click", confirmarDrum);
 
+  // Seletor de cor
+  document.querySelectorAll(".cor-btn").forEach((btn) => {
+    btn.addEventListener("click", () => {
+      document
+        .querySelectorAll(".cor-btn")
+        .forEach((b) => b.classList.remove("ativa"));
+      btn.classList.add("ativa");
+    });
+  });
+
   // Autocomplete no campo de título
   const inputTituloAC = document.getElementById("evento-titulo");
   inputTituloAC.addEventListener("input", (e) => {
@@ -1033,4 +1084,12 @@ document.addEventListener("DOMContentLoaded", () => {
   });
 
   renderCalendario();
+  atualizarBarraInferior();
+
+  // Barra inferior
+  document.getElementById("barra-btn-add").addEventListener("click", () => {
+    const hoje = new Date();
+    const dia = hoje.getDate();
+    abrirSheet(dia);
+  });
 });

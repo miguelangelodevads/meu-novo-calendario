@@ -16,16 +16,15 @@
     <div class="calendario">
       <!-- Cabeçalho estilo Samsung -->
       <div class="calendario-header">
-        <div class="header-ano-grupo">
-          <div class="header-ano" id="ano-display"></div>
+        <div class="header-esquerda">
           <button
-            class="btn-icone discreto"
+            class="btn-icone"
             id="btn-stats"
             aria-label="Abrir Painel de Resumo"
           >
             <svg
-              width="20"
-              height="20"
+              width="22"
+              height="22"
               viewBox="0 0 24 24"
               fill="none"
               stroke="currentColor"
@@ -39,7 +38,7 @@
             </svg>
           </button>
         </div>
-        <div class="header-navegacao">
+        <div class="header-centro">
           <button class="btn-nav" id="btn-anterior" aria-label="Mês anterior">
             &#8249;
           </button>
@@ -48,21 +47,30 @@
             &#8250;
           </button>
         </div>
+        <div class="header-direita">
+          <span class="header-ano" id="ano-display"></span>
+        </div>
       </div>
 
       <!-- Dias da semana -->
       <div class="dias-semana">
-        <span class="dom">Dom</span>
-        <span>Seg</span>
-        <span>Ter</span>
-        <span>Qua</span>
-        <span>Qui</span>
-        <span>Sex</span>
-        <span class="sab">Sáb</span>
+        <span class="dom">D</span>
+        <span>S</span>
+        <span>T</span>
+        <span>Q</span>
+        <span>Q</span>
+        <span>S</span>
+        <span class="sab">S</span>
       </div>
 
       <!-- Grade de dias -->
       <div class="grade-dias" id="grade-dias"></div>
+
+      <!-- Barra inferior Samsung -->
+      <div class="barra-inferior" id="barra-inferior">
+        <span class="barra-texto" id="barra-texto">Adic. evento</span>
+        <button class="barra-btn-add" id="barra-btn-add">+</button>
+      </div>
     </div>
 
     <!-- Top Sheet: Resumo Dashboard -->
@@ -120,6 +128,48 @@
           autocomplete="off"
         />
         <div class="autocomplete-sugestoes" id="autocomplete-sugestoes"></div>
+      </div>
+
+      <div class="sheet-campo sheet-campo-linha cor-seletor">
+        <span class="sheet-icone">🎨</span>
+        <div class="cor-opcoes" id="cor-opcoes">
+          <button
+            type="button"
+            class="cor-btn ativa"
+            data-cor="#1a73e8"
+            style="background: #1a73e8"
+          ></button>
+          <button
+            type="button"
+            class="cor-btn"
+            data-cor="#e53935"
+            style="background: #e53935"
+          ></button>
+          <button
+            type="button"
+            class="cor-btn"
+            data-cor="#43a047"
+            style="background: #43a047"
+          ></button>
+          <button
+            type="button"
+            class="cor-btn"
+            data-cor="#fb8c00"
+            style="background: #fb8c00"
+          ></button>
+          <button
+            type="button"
+            class="cor-btn"
+            data-cor="#8e24aa"
+            style="background: #8e24aa"
+          ></button>
+          <button
+            type="button"
+            class="cor-btn"
+            data-cor="#00acc1"
+            style="background: #00acc1"
+          ></button>
+        </div>
       </div>
 
       <div class="sheet-campo sheet-campo-linha">
