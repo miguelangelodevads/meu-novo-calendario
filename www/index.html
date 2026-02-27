@@ -1,307 +1,2206 @@
-<!doctype html>
-<html lang="pt-br">
+<!DOCTYPE html>
+<html lang="pt-PT">
   <head>
     <meta charset="UTF-8" />
     <meta
       name="viewport"
-      content="width=device-width, initial-scale=1.0, viewport-fit=cover"
+      content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover"
     />
-    <title>Calendário</title>
-    <link rel="preconnect" href="https://fonts.googleapis.com" />
-    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
-    <link
-      href="https://fonts.googleapis.com/css2?family=Roboto:wght@300;400;500&display=swap"
-      rel="stylesheet"
-    />
-    <link rel="stylesheet" href="style.css" />
+    <title>Agenda Pro</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <script src="https://unpkg.com/lucide@latest"></script>
+    <script src="https://html2canvas.hertzen.com/dist/html2canvas.min.js"></script>
+    <style>
+      * {
+        box-sizing: border-box;
+      }
+      html,
+      body {
+        height: 100%;
+        height: 100dvh;
+      }
+      body {
+        background-color: #000;
+        color: white;
+        font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto,
+          Helvetica, Arial, sans-serif;
+        overflow: hidden;
+        user-select: none;
+        -webkit-user-select: none;
+        margin: 0;
+        padding: 0;
+      }
+      .no-scrollbar::-webkit-scrollbar {
+        display: none;
+      }
+      .no-scrollbar {
+        -ms-overflow-style: none;
+        scrollbar-width: none;
+      }
+      .overflow-y-auto {
+        -webkit-overflow-scrolling: touch;
+        scroll-behavior: smooth;
+      }
+      .slide-up {
+        animation: slideUp 0.3s cubic-bezier(0.16, 1, 0.3, 1) forwards;
+      }
+      .fade-in {
+        animation: fadeIn 0.2s ease-out forwards;
+      }
+      .pop-in {
+        animation: popIn 0.2s cubic-bezier(0.16, 1, 0.3, 1) forwards;
+      }
+      @keyframes slideUp {
+        from {
+          transform: translateY(100%);
+        }
+        to {
+          transform: translateY(0);
+        }
+      }
+      @keyframes fadeIn {
+        from {
+          opacity: 0;
+        }
+        to {
+          opacity: 1;
+        }
+      }
+      @keyframes popIn {
+        from {
+          transform: scale(0.95);
+          opacity: 0;
+        }
+        to {
+          transform: scale(1);
+          opacity: 1;
+        }
+      }
+      .backdrop-blur-custom {
+        backdrop-filter: blur(12px);
+        -webkit-backdrop-filter: blur(12px);
+      }
+      #calendar-track {
+        display: flex;
+        width: 300%;
+        height: 100%;
+        transform: translateX(-33.3333%);
+        will-change: transform;
+      }
+      .month-slide {
+        width: 33.3333%;
+        height: 100%;
+        flex-shrink: 0;
+      }
+      .date-btn-zone {
+        padding: 10px;
+        border-radius: 16px;
+        transition: background 0.2s;
+        cursor: pointer;
+        width: 140px;
+        text-align: center;
+      }
+      .date-btn-zone:active {
+        background-color: rgba(255, 255, 255, 0.1);
+      }
+
+      /* Eventos - texto com quebra de linha se não couber */
+      .event-word-wrap {
+        display: block;
+        width: 100%;
+        line-height: 1.15;
+        font-size: 10px;
+        max-height: 36px;
+        overflow: hidden;
+        white-space: normal;
+        word-break: break-word;
+        padding-left: 3px;
+      }
+
+      #suggestion-box {
+        position: absolute;
+        top: 85px;
+        left: 20px;
+        right: 20px;
+        background: #2c2c2e;
+        border-radius: 20px;
+        z-index: 50;
+        box-shadow: 0 10px 30px rgba(0, 0, 0, 0.5);
+        display: none;
+        overflow: hidden;
+        border: 1px solid rgba(255, 255, 255, 0.05);
+      }
+      .suggestion-item {
+        padding: 15px 20px;
+        border-bottom: 1px solid rgba(255, 255, 255, 0.05);
+        font-size: 16px;
+      }
+      .suggestion-item:active {
+        background: #3a3a3c;
+      }
+      #search-modal {
+        background: rgba(0, 0, 0, 0.95);
+        backdrop-filter: blur(25px);
+      }
+      /* Circulo preenchido no dia atual -> Agora Quadrado Arredondado */
+      .today-circle {
+        display: inline-flex;
+        align-items: center;
+        justify-content: center;
+        width: 24px;
+        height: 24px;
+        background-color: #3b82f6;
+        border-radius: 6px;
+        color: white !important;
+        font-weight: 700 !important;
+        margin-left: 1px;
+      }
+
+      /* Responsividade - altura das células por tamanho de tela */
+      @media (max-height: 600px) {
+        .day-cell {
+          min-height: 45px !important;
+        }
+      }
+      @media (min-height: 601px) and (max-height: 700px) {
+        .day-cell {
+          min-height: 55px !important;
+        }
+      }
+      @media (min-height: 701px) and (max-height: 800px) {
+        .day-cell {
+          min-height: 65px !important;
+        }
+      }
+      @media (min-height: 801px) {
+        .day-cell {
+          min-height: 75px !important;
+        }
+      }
+
+      /* Desktop - centralizar conteúdo */
+      @media (min-width: 769px) {
+        header,
+        .weekdays-row,
+        #calendar-viewport,
+        .bottom-bar-wrap {
+          max-width: 500px;
+          margin-left: auto;
+          margin-right: auto;
+        }
+      }
+
+      /* Paisagem / Horizontal (Tablet style) */
+      @media (orientation: landscape) and (min-width: 600px) {
+        body.app-container {
+          flex-direction: row;
+        }
+        .left-column {
+          width: 55%;
+          height: 100%;
+          display: flex;
+          flex-direction: column;
+          border-right: 1px solid rgba(255, 255, 255, 0.1);
+        }
+        .right-column {
+          width: 45%;
+          height: 100%;
+          position: relative;
+          background-color: #000;
+        }
+
+        /* Oculta os placeholders base que serviam no portrait */
+        .bottom-bar-wrap,
+        #day-summary-overlay {
+          display: none !important;
+        }
+
+        /* Container que vai alojar a nova injeção no javascript */
+        #landscape-summary-container {
+          display: flex;
+          flex-direction: column;
+          height: 100%;
+        }
+      }
+    </style>
   </head>
-  <body>
-    <div class="calendario">
-      <!-- Cabeçalho estilo Samsung -->
-      <div class="calendario-header">
-        <div class="header-esquerda">
-          <button
-            class="btn-icone"
-            id="btn-stats"
-            aria-label="Abrir Painel de Resumo"
+  <body
+    class="app-container flex flex-col w-full"
+    style="height: 100dvh; height: 100vh"
+  >
+    <div class="left-column w-full h-full flex flex-col">
+      <!-- SIDEBAR -->
+      <div
+        id="sidebar-overlay"
+        class="fixed inset-0 z-[400] bg-black/60 backdrop-blur-sm hidden fade-in"
+        onclick="toggleSidebar()"
+      >
+        <div
+          id="sidebar-menu"
+          class="w-72 h-full bg-[#1c1c1e] shadow-2xl transition-transform duration-300 -translate-x-full"
+          onclick="event.stopPropagation()"
+        >
+          <div
+            class="p-8 flex flex-col h-full"
+            style="padding-top: calc(env(safe-area-inset-top, 0px) + 2rem)"
           >
-            <svg
-              width="22"
-              height="22"
-              viewBox="0 0 24 24"
-              fill="none"
-              stroke="currentColor"
-              stroke-width="2"
-              stroke-linecap="round"
-              stroke-linejoin="round"
+            <div
+              class="text-2xl font-light text-white mb-10 flex items-center gap-3"
             >
-              <line x1="3" y1="12" x2="21" y2="12"></line>
-              <line x1="3" y1="6" x2="21" y2="6"></line>
-              <line x1="3" y1="18" x2="21" y2="18"></line>
-            </svg>
-          </button>
-        </div>
-        <div class="header-centro">
-          <button class="btn-nav" id="btn-anterior" aria-label="Mês anterior">
-            &#8249;
-          </button>
-          <span class="header-mes" id="mes-display"></span>
-          <button class="btn-nav" id="btn-proximo" aria-label="Próximo mês">
-            &#8250;
-          </button>
-        </div>
-        <div class="header-direita">
-          <span class="header-ano" id="ano-display"></span>
+              <i data-lucide="calendar-days" class="w-8 h-8 text-blue-500"></i>
+              Agenda Pro
+            </div>
+            <div class="space-y-6">
+              <div
+                class="flex items-center gap-4 text-gray-200 text-lg cursor-pointer active:text-blue-400"
+                onclick="toggleSidebar()"
+              >
+                <i data-lucide="calendar"></i> Calendário
+              </div>
+              <div
+                class="flex items-center gap-4 text-gray-200 text-lg cursor-pointer active:text-blue-400"
+                onclick="
+                toggleSidebar();
+                openStatsModal();
+              "
+              >
+                <i data-lucide="bar-chart-2"></i> Estatísticas
+              </div>
+              <div
+                class="flex items-center gap-4 text-gray-200 text-lg cursor-pointer active:text-blue-400"
+                onclick="
+                toggleSidebar();
+                openFinancialSummaryModal();
+              "
+              >
+                <i data-lucide="dollar-sign"></i> Resumo Financeiro
+              </div>
+              <div
+                class="flex items-center gap-4 text-gray-200 text-lg cursor-pointer active:text-blue-400"
+                onclick="exportBackup()"
+              >
+                <i data-lucide="download"></i> Backup
+              </div>
+              <div
+                class="flex items-center gap-4 text-gray-200 text-lg cursor-pointer active:text-blue-400"
+                onclick="importBackup()"
+              >
+                <i data-lucide="upload"></i> Restaurar
+                <input
+                  type="file"
+                  id="backup-input"
+                  class="hidden"
+                  accept=".json"
+                  onchange="handleImport(event)"
+                />
+              </div>
+            </div>
+            <div
+              class="mt-auto text-[10px] text-gray-600 uppercase tracking-widest font-bold"
+              style="padding-bottom: env(safe-area-inset-bottom, 0px)"
+            >
+              Stable v5.9 Local
+            </div>
+          </div>
         </div>
       </div>
 
-      <!-- Dias da semana -->
-      <div class="dias-semana">
-        <span class="dom">D</span>
-        <span>S</span>
-        <span>T</span>
-        <span>Q</span>
-        <span>Q</span>
-        <span>S</span>
-        <span class="sab">S</span>
+      <!-- HEADER: ≡ | FEV. + badge | 🔍 + [nº] -->
+      <header
+        class="px-5 pb-2 flex items-center justify-between shrink-0 z-30 bg-black"
+        style="padding-top: max(env(safe-area-inset-top, 0px), 12px)"
+      >
+        <i
+          data-lucide="menu"
+          class="w-6 h-6 text-white cursor-pointer active:opacity-50"
+          onclick="toggleSidebar()"
+        ></i>
+        <div class="flex flex-col items-center">
+          <div class="text-[20px] font-bold tracking-wider text-white">
+            <span id="current-month-name">FEV.</span>
+          </div>
+          <div
+            id="monthly-total-badge"
+            class="text-[10px] font-bold text-green-400 mt-0.5 bg-green-900/30 px-2 py-0.5 rounded-full border border-green-800/20"
+          >
+            R$ 0,00
+          </div>
+        </div>
+        <div class="flex items-center gap-4">
+          <i
+            data-lucide="search"
+            class="w-5 h-5 text-white active:opacity-50 cursor-pointer"
+            onclick="toggleSearch(true)"
+          ></i>
+          <div
+            class="border-[1.5px] border-white rounded-[5px] w-[22px] h-[22px] flex items-center justify-center"
+          >
+            <span class="text-[11px] font-bold" id="current-month-number"
+              >2</span
+            >
+          </div>
+        </div>
+      </header>
+
+      <!-- SEARCH MODAL -->
+      <div
+        id="search-modal"
+        class="fixed inset-0 z-[500] hidden flex flex-col"
+        style="
+          padding: calc(env(safe-area-inset-top, 0px) + 16px) 16px 16px 16px;
+        "
+      >
+        <div
+          class="bg-[#1c1c1e] p-5 rounded-[32px] border border-white/5 shadow-2xl"
+        >
+          <div class="flex items-center gap-4 mb-4">
+            <i
+              data-lucide="chevron-left"
+              class="w-6 h-6 text-white"
+              onclick="toggleSearch(false)"
+            ></i>
+            <input
+              type="text"
+              id="search-input"
+              placeholder="Buscar evento..."
+              class="bg-transparent flex-1 outline-none text-lg text-white"
+              oninput="handleSearch()"
+            />
+            <i
+              data-lucide="x"
+              class="w-5 h-5 text-gray-500"
+              onclick="clearSearch()"
+            ></i>
+          </div>
+          <button
+            onclick="toggleSearch(false)"
+            class="w-full py-3 bg-[#2c2c2e] text-white font-medium rounded-full active:bg-[#3a3a3c] transition-colors"
+          >
+            Cancelar
+          </button>
+        </div>
+        <div
+          id="search-results"
+          class="flex-1 overflow-y-auto mt-4 space-y-2 no-scrollbar text-white"
+        ></div>
       </div>
 
-      <!-- Grade de dias -->
-      <div class="grade-dias" id="grade-dias"></div>
+      <!-- DIAS DA SEMANA -->
+      <div
+        class="weekdays-row grid grid-cols-7 pb-1 mt-1 px-2 shrink-0 bg-black z-20 text-left text-[12px] font-semibold text-gray-500 tracking-wider"
+      >
+        <div class="text-[#ff4d4d] pl-[5px]">D</div>
+        <div class="pl-[5px]">S</div>
+        <div class="pl-[5px]">T</div>
+        <div class="pl-[5px]">Q</div>
+        <div class="pl-[5px]">Q</div>
+        <div class="pl-[5px]">S</div>
+        <div class="text-[#4d9fff] pl-[5px]">S</div>
+      </div>
 
-      <!-- Barra inferior Samsung -->
-      <div class="barra-inferior" id="barra-inferior">
-        <span class="barra-texto" id="barra-texto">Adic. evento</span>
-        <button class="barra-btn-add" id="barra-btn-add">+</button>
+      <!-- CALENDÁRIO ESTEIRA -->
+      <div
+        id="calendar-viewport"
+        class="overflow-hidden shrink-0 touch-none flex-1 bg-black relative"
+        style="min-height: 0"
+      >
+        <div id="calendar-track">
+          <div
+            class="month-slide px-2 grid grid-cols-7 auto-rows-fr"
+            id="month-prev"
+          ></div>
+          <div
+            class="month-slide px-2 grid grid-cols-7 auto-rows-fr"
+            id="month-curr"
+          ></div>
+          <div
+            class="month-slide px-2 grid grid-cols-7 auto-rows-fr"
+            id="month-next"
+          ></div>
+        </div>
+      </div>
+
+      <!-- BARRA INFERIOR -->
+      <div
+        class="bottom-bar-wrap fixed bottom-0 left-0 right-0 px-4 pt-8 bg-gradient-to-t from-black via-black/95 to-transparent flex items-end justify-between gap-3 z-40 pointer-events-none"
+        style="padding-bottom: calc(env(safe-area-inset-bottom, 0px) + 12px)"
+      >
+        <div
+          class="flex-1 bg-[#1c1c1e] rounded-full h-[50px] flex items-center px-5 border border-white/5 shadow-2xl pointer-events-auto"
+        >
+          <input
+            type="text"
+            id="quick-input"
+            placeholder="Adic. evento em 26 de fev."
+            class="bg-transparent w-full text-[15px] text-gray-400 outline-none text-center"
+            onfocus="
+            openForm(null);
+            this.blur();
+          "
+          />
+        </div>
+        <button
+          onclick="openForm(null)"
+          class="w-[50px] h-[50px] bg-[#333] rounded-full flex items-center justify-center shadow-2xl border border-white/10 active:scale-90 transition-transform pointer-events-auto shrink-0"
+        >
+          <i data-lucide="plus" class="text-white w-7 h-7"></i>
+        </button>
+      </div>
+
+      <!-- MODAL RESUMO -->
+      <div
+        id="day-summary-overlay"
+        class="fixed inset-0 z-[100] bg-black/70 backdrop-blur-custom flex items-center justify-center p-4 hidden fade-in"
+        onclick="closeSummary(event)"
+      >
+        <div
+          class="w-full max-w-sm bg-[#1c1c1e] rounded-[36px] flex flex-col max-h-[75vh] pop-in relative shadow-2xl border border-white/5 overflow-hidden"
+          onclick="event.stopPropagation()"
+        >
+          <div class="px-7 pt-7 pb-3 flex justify-between items-start">
+            <div class="flex gap-2 items-baseline">
+              <span
+                id="summary-day-number"
+                class="text-[36px] font-medium text-white leading-none"
+              ></span>
+              <span
+                id="summary-weekday"
+                class="text-[18px] text-gray-400 capitalize"
+              ></span>
+            </div>
+            <i data-lucide="smile" class="w-6 h-6 text-gray-500"></i>
+          </div>
+          <div
+            id="summary-events-list"
+            class="flex-1 overflow-y-auto px-4 py-2 space-y-1 min-h-[120px] no-scrollbar"
+          ></div>
+          <div class="p-6 flex items-center gap-4 bg-black/30 mt-2">
+            <div
+              class="flex-1 bg-[#2c2c2e] rounded-[24px] h-[50px] flex items-center px-5 border border-white/5"
+            >
+              <input
+                type="text"
+                id="summary-input"
+                class="bg-transparent w-full text-[15px] text-white outline-none"
+                placeholder="Adic. evento..."
+                onkeydown="if (event.key === 'Enter') openFormFromSummary();"
+              />
+            </div>
+            <button
+              onclick="openFormFromSummary()"
+              class="w-[50px] h-[50px] bg-[#3a3a3c] rounded-full flex items-center justify-center active:scale-90 transition-transform shrink-0"
+            >
+              <i data-lucide="plus" class="text-white"></i>
+            </button>
+          </div>
+        </div>
       </div>
     </div>
+    <!-- fechar left-column -->
 
-    <!-- Top Sheet: Resumo Dashboard -->
-    <div class="top-sheet" id="top-sheet-stats" role="dialog" aria-modal="true">
-      <div class="stats-header">
-        <div class="stats-titulo">
-          Resumo: <span id="stats-label-mes"></span>
-        </div>
-        <button class="btn-icone stats-close" id="btn-fechar-stats">✕</button>
-      </div>
-
-      <div class="stats-grid">
-        <div class="stats-card">
-          <div class="stats-label">Faturamento Mes</div>
-          <div class="stats-valor destaque" id="stats-fat-mes">R$ 0,00</div>
-        </div>
-        <div class="stats-card">
-          <div class="stats-label">Faturamento Ano</div>
-          <div class="stats-valor" id="stats-fat-ano">R$ 0,00</div>
-        </div>
-        <div class="stats-card">
-          <div class="stats-label">Shows este Mês</div>
-          <div class="stats-valor destaque" id="stats-qtd-mes">0</div>
-        </div>
-        <div class="stats-card">
-          <div class="stats-label">Shows no Ano</div>
-          <div class="stats-valor" id="stats-qtd-ano">0</div>
-        </div>
-      </div>
-      <div class="top-sheet-handle"></div>
-    </div>
-
-    <!-- Overlay escuro -->
-    <div class="overlay" id="overlay"></div>
-
-    <!-- Bottom Sheet: cadastro de evento -->
+    <!-- COLUNA DIREITA (Apenas Landscape) -->
     <div
-      class="bottom-sheet"
-      id="bottom-sheet"
-      role="dialog"
-      aria-modal="true"
-      aria-labelledby="sheet-titulo"
+      class="right-column hidden landscape:-block flex flex-col pt-8"
+      style="display: none"
     >
-      <div class="sheet-handle"></div>
-
-      <div class="sheet-data-selecionada" id="sheet-data-selecionada"></div>
-
-      <div class="sheet-campo" style="position: relative">
-        <input
-          type="text"
-          id="evento-titulo"
-          class="sheet-input"
-          placeholder="Adicionar título"
-          maxlength="80"
-          autocomplete="off"
-        />
-        <div class="autocomplete-sugestoes" id="autocomplete-sugestoes"></div>
+      <style>
+        @media (orientation: landscape) and (min-width: 600px) {
+          .right-column {
+            display: flex !important;
+          }
+        }
+      </style>
+      <div class="px-7 pt-4 pb-3 flex justify-between items-start">
+        <div class="flex gap-2 items-baseline">
+          <span
+            id="landscape-summary-day-number"
+            class="text-[42px] font-bold text-white leading-none"
+          ></span>
+          <span
+            id="landscape-summary-weekday"
+            class="text-[20px] text-gray-400 font-medium uppercase tracking-wider"
+          ></span>
+        </div>
+        <i data-lucide="smile" class="w-6 h-6 text-gray-500"></i>
       </div>
+      <div
+        id="landscape-summary-events-list"
+        class="flex-1 overflow-y-auto px-4 py-2 space-y-2 no-scrollbar"
+      ></div>
+      <div
+        class="p-6 flex items-center gap-4 mt-auto border-t border-white/5 bg-black/50"
+      >
+        <div
+          class="flex-1 bg-[#2c2c2e] rounded-[24px] h-[50px] flex items-center px-5 border border-white/5"
+        >
+          <input
+            type="text"
+            id="landscape-summary-input"
+            class="bg-transparent w-full text-[15px] text-white outline-none"
+            placeholder="Adic. evento..."
+            onkeydown="if (event.key === 'Enter') openFormFromLandscape();"
+          />
+        </div>
+        <button
+          onclick="openFormFromLandscape()"
+          class="w-[50px] h-[50px] bg-[#3a3a3c] rounded-full flex items-center justify-center active:scale-90 transition-transform shrink-0"
+        >
+          <i data-lucide="plus" class="text-white"></i>
+        </button>
+      </div>
+    </div>
 
-      <div class="sheet-campo sheet-campo-linha cor-seletor">
-        <span class="sheet-icone">🎨</span>
-        <div class="cor-opcoes" id="cor-opcoes">
-          <button
-            type="button"
-            class="cor-btn ativa"
-            data-cor="#1a73e8"
-            style="background: #1a73e8"
-          ></button>
-          <button
-            type="button"
-            class="cor-btn"
-            data-cor="#e53935"
-            style="background: #e53935"
-          ></button>
-          <button
-            type="button"
-            class="cor-btn"
-            data-cor="#43a047"
-            style="background: #43a047"
-          ></button>
-          <button
-            type="button"
-            class="cor-btn"
-            data-cor="#fb8c00"
-            style="background: #fb8c00"
-          ></button>
-          <button
-            type="button"
-            class="cor-btn"
-            data-cor="#8e24aa"
-            style="background: #8e24aa"
-          ></button>
-          <button
-            type="button"
-            class="cor-btn"
-            data-cor="#00acc1"
-            style="background: #00acc1"
-          ></button>
+    <!-- VISUALIZAÇÃO DETALHES -->
+    <div
+      id="event-details-view"
+      class="fixed inset-0 z-[150] bg-black flex flex-col hidden slide-up"
+    >
+      <div
+        class="px-4 py-4 flex items-center justify-between"
+        style="padding-top: max(env(safe-area-inset-top, 0px), 1.5rem)"
+      >
+        <button
+          onclick="closeEventDetails()"
+          class="p-3 active:bg-white/10 rounded-full text-white"
+        >
+          <i data-lucide="chevron-left" class="w-9 h-9"></i>
+        </button>
+        <div
+          id="view-color-dot"
+          class="w-5 h-5 rounded-full bg-blue-500 mr-5"
+        ></div>
+      </div>
+      <div class="flex-1 overflow-y-auto px-10 pt-4 no-scrollbar">
+        <h1
+          id="view-title"
+          class="text-3xl font-light text-white mb-14 leading-tight"
+        ></h1>
+        <div class="space-y-12">
+          <div class="flex items-start gap-6">
+            <i
+              data-lucide="clock"
+              class="text-gray-500 w-6 h-6 mt-1 shrink-0"
+            ></i>
+            <div class="flex-1 flex justify-between">
+              <div class="flex flex-col">
+                <span id="view-start-date" class="text-white text-[19px]"></span
+                ><span
+                  id="view-start-time"
+                  class="text-gray-400 text-lg"
+                ></span>
+              </div>
+              <i
+                data-lucide="arrow-right"
+                class="text-gray-700 mt-2 shrink-0"
+                size="18"
+              ></i>
+              <div class="flex flex-col text-right">
+                <span id="view-end-date" class="text-white text-[19px]"></span
+                ><span id="view-end-time" class="text-gray-400 text-lg"></span>
+              </div>
+            </div>
+          </div>
+          <div
+            id="view-location-container"
+            class="flex items-center gap-6 hidden"
+          >
+            <i data-lucide="map-pin" class="text-gray-500 w-6 h-6 shrink-0"></i>
+            <span
+              id="view-location-text"
+              class="text-blue-400 text-xl underline truncate flex-1"
+            ></span>
+          </div>
+          <div id="view-value-container" class="flex items-center gap-6 hidden">
+            <i
+              data-lucide="banknote"
+              class="text-green-500 w-6 h-6 shrink-0"
+            ></i>
+            <span
+              id="view-value-text"
+              class="text-white text-2xl font-medium"
+            ></span>
+            <div class="ml-auto">
+              <button
+                id="view-status-toggle"
+                class="flex items-center gap-2 px-3 py-1.5 rounded-full text-sm font-bold border"
+                onclick="toggleCurrentEventStatus()"
+              >
+                <div
+                  id="view-status-icon"
+                  class="w-4 h-4 rounded-full border-2 flex items-center justify-center"
+                >
+                  <i
+                    data-lucide="check"
+                    class="w-3 h-3 text-white hidden"
+                    id="view-status-check"
+                  ></i>
+                </div>
+                <span id="view-status-label">Não Pago</span>
+              </button>
+            </div>
+          </div>
         </div>
       </div>
+      <div
+        class="pt-4 bg-black border-t border-gray-900 grid grid-cols-5 text-center text-gray-400"
+        style="padding-bottom: max(env(safe-area-inset-bottom, 0px), 3rem)"
+      >
+        <button
+          onclick="duplicateEvent()"
+          class="flex flex-col items-center gap-1 active:text-white"
+        >
+          <i data-lucide="copy"></i><span class="text-[10px]">Duplicar</span>
+        </button>
+        <button
+          onclick="editEvent()"
+          class="flex flex-col items-center gap-1 active:text-white"
+        >
+          <i data-lucide="pencil"></i><span class="text-[10px]">Editar</span>
+        </button>
+        <button
+          onclick="shareEvent()"
+          class="flex flex-col items-center gap-1 active:text-white"
+        >
+          <i data-lucide="share-2"></i
+          ><span class="text-[10px]">Partilhar</span>
+        </button>
+        <button
+          onclick="deleteEvent()"
+          class="flex flex-col items-center gap-1 hover:text-red-500"
+        >
+          <i data-lucide="trash-2"></i><span class="text-[10px]">Excluir</span>
+        </button>
+        <button
+          onclick="openWaze()"
+          class="flex flex-col items-center gap-1 active:text-blue-400"
+        >
+          <i data-lucide="navigation"></i><span class="text-[10px]">Waze</span>
+        </button>
+      </div>
+    </div>
 
-      <div class="sheet-campo sheet-campo-linha">
-        <span class="sheet-icone">🕐</span>
-        <div class="sheet-horario-grupo">
-          <button
-            class="horario-btn"
-            id="btn-hora-inicio"
-            aria-label="Selecionar horário de início"
+    <!-- FORMULÁRIO -->
+    <div
+      id="add-modal"
+      class="fixed inset-0 z-[200] bg-black flex flex-col hidden slide-up"
+    >
+      <div
+        class="flex-1 overflow-y-auto p-5 no-scrollbar relative"
+        style="padding-top: max(env(safe-area-inset-top, 0px), 2rem)"
+      >
+        <div class="relative">
+          <div
+            class="bg-[#1c1c1e] rounded-[30px] p-5 mb-1 flex items-center justify-between shadow-xl border border-white/5"
           >
-            <span id="display-hora-inicio">08:00</span>
-          </button>
-          <span class="sheet-separador">→</span>
-          <button
-            class="horario-btn"
-            id="btn-hora-fim"
-            aria-label="Selecionar horário de fim"
+            <input
+              id="modal-title"
+              type="text"
+              placeholder="Título"
+              class="bg-transparent text-[24px] text-white outline-none w-full font-normal"
+              oninput="handleTitleInput()"
+              autocomplete="off"
+            />
+            <button
+              id="color-trigger"
+              class="w-8 h-8 rounded-full bg-[#007bff] border-2 border-black ring-1 ring-white/20 ml-3 shrink-0"
+              onclick="toggleColorPicker(event)"
+            ></button>
+          </div>
+          <div id="suggestion-box"></div>
+          <div
+            id="color-picker"
+            class="absolute top-24 right-5 bg-[#2c2c2e] p-4 rounded-[28px] shadow-2xl z-[60] grid grid-cols-5 gap-3 w-[240px] border border-white/10 hidden"
+          ></div>
+        </div>
+        <div
+          class="bg-[#1c1c1e] rounded-[30px] p-6 mt-6 mb-6 space-y-8 shadow-xl border border-white/5"
+        >
+          <div class="flex justify-between items-center px-2">
+            <div class="flex items-center gap-4">
+              <i data-lucide="clock" class="text-gray-500"></i
+              ><span class="text-[18px]">Todo o dia</span>
+            </div>
+            <div
+              id="toggle-allday"
+              class="w-[56px] h-[34px] rounded-full p-1 bg-gray-600 cursor-pointer transition-colors shrink-0"
+              onclick="toggleAllDay()"
+            >
+              <div
+                id="toggle-circle"
+                class="w-[26px] h-[26px] bg-white rounded-full transition-transform"
+              ></div>
+            </div>
+          </div>
+          <div class="flex justify-between items-start pt-2 px-2">
+            <div
+              class="flex flex-col items-center gap-2 date-btn-zone cursor-pointer"
+              onclick="openCustomDatePicker()"
+            >
+              <span
+                id="label-date-start"
+                class="text-[17px] text-gray-100 border-b border-white/20 pb-0.5 font-medium"
+              ></span>
+              <button
+                id="label-time-start"
+                class="text-[24px] font-light mt-1"
+                onclick="
+                  event.stopPropagation();
+                  toggleTimeSpinner('start');
+                "
+              >
+                08:00
+              </button>
+            </div>
+            <i
+              data-lucide="chevron-right"
+              class="text-gray-700 mt-12 shrink-0"
+              size="20"
+            ></i>
+            <div
+              class="flex flex-col items-center gap-2 date-btn-zone cursor-pointer"
+              onclick="openCustomDatePicker()"
+            >
+              <span
+                id="label-date-end"
+                class="text-[17px] text-gray-100 border-b border-white/20 pb-0.5 font-medium"
+              ></span>
+              <button
+                id="label-time-end"
+                class="text-[24px] font-light mt-1"
+                onclick="
+                  event.stopPropagation();
+                  toggleTimeSpinner('end');
+                "
+              >
+                09:00
+              </button>
+            </div>
+          </div>
+          <div
+            id="time-spinner-container"
+            class="hidden border-t border-white/10 pt-6"
           >
-            <span id="display-hora-fim">09:00</span>
-          </button>
+            <div class="flex justify-center items-center h-[200px] relative">
+              <div
+                class="absolute w-full h-[50px] border-t border-b border-white/10 pointer-events-none"
+              ></div>
+              <div
+                id="spinner-hours"
+                class="h-full w-24 overflow-y-auto no-scrollbar snap-y snap-mandatory py-[75px]"
+                onscroll="updateTimeFromSpinner()"
+              ></div>
+              <span class="text-white text-4xl pb-2 px-3 font-light">:</span>
+              <div
+                id="spinner-minutes"
+                class="h-full w-24 overflow-y-auto no-scrollbar snap-y snap-mandatory py-[75px]"
+                onscroll="updateTimeFromSpinner()"
+              ></div>
+            </div>
+          </div>
+        </div>
+        <div
+          class="bg-[#1c1c1e] rounded-[30px] overflow-hidden mb-10 shadow-xl border border-white/5"
+        >
+          <div class="flex items-center p-6 border-b border-white/5">
+            <i
+              data-lucide="banknote"
+              class="text-green-500 mr-5 shrink-0"
+              size="22"
+            ></i>
+            <input
+              id="modal-value"
+              type="number"
+              placeholder="Valor do Cachê (R$)"
+              class="bg-transparent text-[18px] text-white outline-none w-full placeholder-gray-600"
+            />
+          </div>
+          <div class="flex items-center p-6">
+            <i
+              data-lucide="map-pin"
+              class="text-gray-500 mr-5 shrink-0"
+              size="22"
+            ></i>
+            <input
+              id="modal-location"
+              type="text"
+              placeholder="Local"
+              class="bg-transparent text-[18px] text-white outline-none w-full placeholder-gray-600"
+            />
+          </div>
         </div>
       </div>
-
-      <div class="sheet-campo sheet-campo-linha">
-        <span class="sheet-icone">💰</span>
-        <input
-          type="text"
-          id="evento-valor"
-          class="sheet-input sheet-input-nota"
-          placeholder="Adicionar valor (ex: 150,00)"
-          maxlength="20"
-          autocomplete="off"
-        />
-      </div>
-
-      <div class="sheet-campo sheet-campo-linha">
-        <span class="sheet-icone">📍</span>
-        <input
-          type="text"
-          id="evento-local"
-          class="sheet-input sheet-input-nota"
-          placeholder="Adicionar local"
-          autocomplete="off"
-        />
-      </div>
-
-      <div class="sheet-campo sheet-campo-linha">
-        <span class="sheet-icone">📋</span>
-        <input
-          type="text"
-          id="evento-nota"
-          class="sheet-input sheet-input-nota"
-          placeholder="Adicionar nota"
-          maxlength="120"
-          autocomplete="off"
-        />
-      </div>
-
-      <div class="sheet-acoes">
-        <button class="sheet-btn sheet-btn-cancelar" id="btn-cancelar">
+      <div
+        class="p-6 bg-black flex justify-between border-t border-gray-900 shadow-2xl"
+        style="padding-bottom: max(env(safe-area-inset-bottom, 0px), 1.5rem)"
+      >
+        <button
+          onclick="closeForm()"
+          class="px-12 py-4 rounded-full bg-[#2c2c2e] font-medium text-white active:bg-gray-700"
+        >
           Cancelar
         </button>
-        <button class="sheet-btn sheet-btn-salvar" id="btn-salvar">
+        <button
+          id="btn-save"
+          onclick="saveEvent()"
+          class="px-12 py-4 rounded-full bg-white text-black font-bold disabled:opacity-30 transition-opacity"
+          disabled
+        >
           Salvar
         </button>
       </div>
     </div>
 
-    <!-- Bottom Sheet: Visualização de Eventos do Dia -->
+    <!-- DATE PICKER BOTTOM SHEET -->
     <div
-      class="bottom-sheet"
-      id="sheet-visualizacao"
-      role="dialog"
-      aria-modal="true"
+      id="custom-date-picker"
+      class="fixed inset-0 z-[500] bg-black/80 flex items-end justify-center hidden fade-in"
+      onclick="closeCustomDatePicker(event)"
     >
-      <div class="sheet-handle"></div>
-      <div class="sheet-data-selecionada" id="vis-data-selecionada"></div>
-
-      <div class="vis-lista-eventos" id="vis-lista-eventos">
-        <!-- Eventos serão injetados aqui via JS -->
-      </div>
-
-      <div class="sheet-acoes" style="margin-top: 20px">
-        <button
-          class="sheet-btn sheet-btn-cancelar"
-          style="
-            width: 100%;
-            border: 1px solid #1a73e8;
-            color: #1a73e8;
-            background: transparent;
-          "
-          id="btn-adicionar-novo-evento"
+      <div
+        class="w-full bg-[#1c1c1e] rounded-t-[44px] p-8 pop-in border-t border-white/10 shadow-2xl"
+        onclick="event.stopPropagation()"
+        style="padding-bottom: max(env(safe-area-inset-bottom, 0px), 3.5rem)"
+      >
+        <div class="flex items-center justify-between mb-10 px-2">
+          <button
+            onclick="changePickerMonth(-1)"
+            class="p-4 bg-white/5 rounded-full active:bg-white/10"
+          >
+            <i data-lucide="chevron-left" class="w-7 h-7 text-white"></i>
+          </button>
+          <div
+            id="picker-month-year"
+            class="text-2xl font-bold text-white tracking-wide"
+          ></div>
+          <button
+            onclick="changePickerMonth(1)"
+            class="p-4 bg-white/5 rounded-full active:bg-white/10"
+          >
+            <i data-lucide="chevron-right" class="w-7 h-7 text-white"></i>
+          </button>
+        </div>
+        <div
+          class="grid grid-cols-7 text-center mb-4 gap-y-6 text-xs font-black text-gray-500"
         >
-          + Adicionar Novo Evento
+          <span class="text-[#ff4d4d]">DOM</span><span>SEG</span><span>TER</span
+          ><span>QUA</span><span>QUI</span><span>SEX</span><span>SÁB</span>
+        </div>
+        <div id="picker-grid" class="grid grid-cols-7 gap-y-5"></div>
+      </div>
+    </div>
+
+    <!-- MODAL RESUMO FINANCEIRO -->
+    <div
+      id="financial-summary-modal"
+      class="fixed inset-0 z-[80] bg-black flex flex-col hidden slide-up"
+    >
+      <div
+        class="p-6 flex items-center justify-between border-b border-gray-900 text-white font-medium"
+        style="padding-top: max(env(safe-area-inset-top, 0px), 1.5rem)"
+      >
+        <h2 class="text-2xl font-light">Resumo Financeiro</h2>
+        <button
+          onclick="closeFinancialSummaryModal()"
+          class="p-3 bg-[#2c2c2e] rounded-full active:bg-gray-700"
+        >
+          <i data-lucide="x"></i>
         </button>
       </div>
-    </div>
-
-    <!-- Drum Picker Samsung -->
-    <div class="drum-overlay" id="drum-overlay" aria-hidden="true">
       <div
-        class="drum-modal"
-        id="drum-modal"
-        role="dialog"
-        aria-modal="true"
-        aria-label="Selecionar horário"
+        class="flex-1 overflow-y-auto p-6 no-scrollbar text-white font-medium space-y-8"
+        style="padding-bottom: max(env(safe-area-inset-bottom, 0px), 1.5rem)"
       >
-        <div class="drum-title" id="drum-title">Horário de início</div>
-        <div class="drum-container">
-          <div class="drum-column" id="drum-horas">
-            <div class="drum-track" id="drum-track-horas"></div>
+        <!-- Mês Atual -->
+        <div
+          class="bg-[#1c1c1e] rounded-[32px] p-6 border border-white/5 shadow-xl"
+        >
+          <h3
+            class="text-gray-400 uppercase tracking-wider text-xs font-bold mb-4"
+          >
+            Mês Atual
+          </h3>
+          <div class="flex justify-between items-center mb-3">
+            <span class="text-red-400">A Receber</span>
+            <span id="fin-month-pending" class="text-red-400 font-bold text-xl"
+              >R$ 0,00</span
+            >
           </div>
-          <div class="drum-sep">:</div>
-          <div class="drum-column" id="drum-minutos">
-            <div class="drum-track" id="drum-track-minutos"></div>
+          <div class="flex justify-between items-center">
+            <span class="text-green-400">Recebido</span>
+            <span id="fin-month-paid" class="text-green-400 font-bold text-xl"
+              >R$ 0,00</span
+            >
           </div>
         </div>
-        <div class="drum-selection-bar"></div>
-        <div class="drum-gradient-top"></div>
-        <div class="drum-gradient-bottom"></div>
-        <div class="drum-actions">
-          <button class="drum-btn drum-btn-cancel" id="drum-cancel">
-            Cancelar
-          </button>
-          <button class="drum-btn drum-btn-ok" id="drum-ok">OK</button>
+
+        <!-- Semana Atual -->
+        <div
+          class="bg-[#1c1c1e] rounded-[32px] p-6 border border-white/5 shadow-xl"
+        >
+          <h3
+            class="text-gray-400 uppercase tracking-wider text-xs font-bold mb-4"
+          >
+            Semana Atual
+          </h3>
+          <div class="flex justify-between items-center mb-3">
+            <span class="text-red-400">A Receber</span>
+            <span id="fin-week-pending" class="text-red-400 font-bold text-xl"
+              >R$ 0,00</span
+            >
+          </div>
+          <div class="flex justify-between items-center">
+            <span class="text-green-400">Recebido</span>
+            <span id="fin-week-paid" class="text-green-400 font-bold text-xl"
+              >R$ 0,00</span
+            >
+          </div>
+        </div>
+
+        <!-- Pendentes -->
+        <div>
+          <h3
+            class="text-gray-400 uppercase tracking-wider text-xs font-bold mb-4 pl-2"
+          >
+            Eventos a Receber (Mês Atual)
+          </h3>
+          <div
+            class="bg-[#1c1c1e] rounded-[32px] overflow-hidden border border-white/5 shadow-xl list-container"
+            id="fin-pending-list"
+          ></div>
         </div>
       </div>
     </div>
 
-    <script src="script.js"></script>
+    <!-- MODAL ESTATÍSTICAS -->
+    <div
+      id="stats-modal"
+      class="fixed inset-0 z-[80] bg-black flex flex-col hidden slide-up"
+    >
+      <div
+        class="p-6 flex items-center justify-between border-b border-gray-900 text-white font-medium"
+        style="padding-top: max(env(safe-area-inset-top, 0px), 1.5rem)"
+      >
+        <h2 class="text-2xl font-light">Estatísticas</h2>
+        <button
+          onclick="closeStatsModal()"
+          class="p-3 bg-[#2c2c2e] rounded-full active:bg-gray-700"
+        >
+          <i data-lucide="x"></i>
+        </button>
+      </div>
+      <div
+        class="flex-1 overflow-y-auto p-6 no-scrollbar text-white font-medium"
+        style="padding-bottom: max(env(safe-area-inset-bottom, 0px), 1.5rem)"
+      >
+        <div
+          class="bg-gradient-to-br from-green-900 to-green-800 rounded-[32px] p-10 mb-8 text-center shadow-2xl border border-green-700/30"
+        >
+          <div
+            class="text-green-300 text-xs font-bold uppercase tracking-widest mb-2"
+            id="stats-year-label"
+          >
+            Total
+          </div>
+          <div
+            id="stats-total-year"
+            class="text-4xl font-black text-white break-words"
+          >
+            R$ 0,00
+          </div>
+        </div>
+        <div
+          class="bg-[#1c1c1e] rounded-[32px] overflow-hidden border border-white/5 shadow-xl"
+          id="stats-month-list"
+        ></div>
+      </div>
+    </div>
+
+    <script>
+      let events = JSON.parse(localStorage.getItem("my_cal_events")) || [
+        {
+          id: 1,
+          title: "Turatti Rádio Tr",
+          date: "2026-01-14",
+          isAllDay: false,
+          startTime: "21:00",
+          endTime: "23:00",
+          location: "Vila Galé",
+          value: 250,
+          colorHex: "#28a745",
+        },
+      ];
+      events = events.map((e) => ({
+        ...e,
+        dateObj: new Date(e.date + "T12:00:00"),
+      }));
+      let currentDate = new Date();
+      let selectedDate = new Date();
+      let editingDate = new Date();
+      let pickerDisplayDate = new Date();
+      let editingId = null;
+      let currentViewingEvent = null;
+      let isAllDay = false;
+      let activeTimeField = null;
+      const colors = [
+        "#007bff",
+        "#dc3545",
+        "#e83e8c",
+        "#fd7e14",
+        "#ffc107",
+        "#28a745",
+        "#20c997",
+        "#6f42c1",
+        "#6c757d",
+      ];
+      let activeColorHex = colors[0];
+      const $ = (id) => document.getElementById(id);
+      const formatMoney = (val) =>
+        new Intl.NumberFormat("pt-BR", {
+          style: "currency",
+          currency: "BRL",
+        }).format(val);
+      const isSameDay = (d1, d2) =>
+        d1 &&
+        d2 &&
+        d1.getDate() === d2.getDate() &&
+        d1.getMonth() === d2.getMonth() &&
+        d1.getFullYear() === d2.getFullYear();
+      const monthsShort = [
+        "JAN.",
+        "FEV.",
+        "MAR.",
+        "ABR.",
+        "MAI.",
+        "JUN.",
+        "JUL.",
+        "AGO.",
+        "SET.",
+        "OUT.",
+        "NOV.",
+        "DEZ.",
+      ];
+      const monthsShortLower = [
+        "jan.",
+        "fev.",
+        "mar.",
+        "abr.",
+        "mai.",
+        "jun.",
+        "jul.",
+        "ago.",
+        "set.",
+        "out.",
+        "nov.",
+        "dez.",
+      ];
+      const monthsLong = [
+        "Janeiro",
+        "Fevereiro",
+        "Março",
+        "Abril",
+        "Maio",
+        "Junho",
+        "Julho",
+        "Agosto",
+        "Setembro",
+        "Outubro",
+        "Novembro",
+        "Dezembro",
+      ];
+      const weekdaysLong = [
+        "domingo",
+        "segunda-feira",
+        "terça-feira",
+        "quarta-feira",
+        "quinta-feira",
+        "sexta-feira",
+        "sábado",
+      ];
+
+      function toggleSidebar() {
+        const overlay = $("sidebar-overlay"),
+          menu = $("sidebar-menu");
+        if (overlay.classList.contains("hidden")) {
+          overlay.classList.remove("hidden");
+          setTimeout(
+            () => menu.classList.replace("-translate-x-full", "translate-x-0"),
+            10,
+          );
+        } else {
+          menu.classList.replace("translate-x-0", "-translate-x-full");
+          setTimeout(() => overlay.classList.add("hidden"), 300);
+        }
+      }
+
+      // Navegação por setas no header
+      function prevMonth() {
+        currentDate.setMonth(currentDate.getMonth() - 1);
+        renderUI();
+      }
+      function nextMonth() {
+        currentDate.setMonth(currentDate.getMonth() + 1);
+        renderUI();
+      }
+
+      function updateBottomBarPlaceholder() {
+        const day = selectedDate.getDate();
+        const monthName = monthsShortLower[selectedDate.getMonth()];
+        $("quick-input").placeholder = `Adic. evento em ${day} de ${monthName}`;
+      }
+
+      function renderUI() {
+        $("current-month-name").textContent =
+          monthsShort[currentDate.getMonth()];
+        $("current-month-number").textContent = currentDate.getMonth() + 1;
+        const monthEvents = events.filter((e) => {
+          const d = e.dateObj;
+          return (
+            d.getMonth() === currentDate.getMonth() &&
+            d.getFullYear() === currentDate.getFullYear()
+          );
+        });
+        const total = monthEvents.reduce(
+          (acc, curr) => acc + (curr.value || 0),
+          0,
+        );
+        $("monthly-total-badge").textContent = formatMoney(total);
+        renderMonth(
+          new Date(currentDate.getFullYear(), currentDate.getMonth() - 1, 1),
+          $("month-prev"),
+        );
+        renderMonth(new Date(currentDate), $("month-curr"));
+        renderMonth(
+          new Date(currentDate.getFullYear(), currentDate.getMonth() + 1, 1),
+          $("month-next"),
+        );
+        updateBottomBarPlaceholder();
+
+        // MANTEM A COLUNA DO LANDSCAPE SINCRONIZADA SEMPRE QUE A TELA ATUALIZAR
+        if (selectedDate) renderDaySummaryContent(selectedDate);
+
+        const toStore = events.map((e) => {
+          const { dateObj, ...rest } = e;
+          return rest;
+        });
+        localStorage.setItem("my_cal_events", JSON.stringify(toStore));
+        lucide.createIcons();
+      }
+
+      function renderMonth(base, container) {
+        container.innerHTML = "";
+        const y = base.getFullYear(),
+          m = base.getMonth();
+        const daysInMonth = new Date(y, m + 1, 0).getDate();
+        const startDay = new Date(y, m, 1).getDay();
+        const prevDays = new Date(y, m, 0).getDate();
+        for (let i = startDay - 1; i >= 0; i--)
+          createDayCell(prevDays - i, true, null, container);
+        for (let i = 1; i <= daysInMonth; i++) {
+          const d = new Date(y, m, i);
+          createDayCell(i, false, d, container);
+        }
+        for (let i = 1; i <= 42 - (startDay + daysInMonth); i++)
+          createDayCell(i, true, null, container);
+      }
+
+      function createDayCell(num, dim, fullDate, container) {
+        const d = document.createElement("div");
+        d.className = `day-cell relative p-[3px] flex flex-col cursor-pointer border-t border-white/5 h-full ${
+          dim ? "opacity-20" : ""
+        }`;
+
+        // Cor do número: domingo=vermelho, sábado=azul, resto=branco
+        let numColor = "text-white";
+        if (fullDate && !dim) {
+          const dow = fullDate.getDay();
+          if (dow === 0) numColor = "text-red-500";
+          else if (dow === 6) numColor = "text-[#4d9fff]";
+        }
+
+        if (fullDate) {
+          const today = new Date();
+          const isToday = isSameDay(fullDate, today);
+          d.onclick = () => {
+            if (selectedDate && isSameDay(selectedDate, fullDate)) {
+              openDaySummary(fullDate);
+            } else {
+              selectedDate = fullDate;
+              if (dim) {
+                currentDate = new Date(
+                  fullDate.getFullYear(),
+                  fullDate.getMonth(),
+                  1,
+                );
+              }
+              renderUI();
+            }
+          };
+          // Circulo de seleção
+          if (selectedDate && isSameDay(fullDate, selectedDate) && !dim) {
+            d.innerHTML = `<div class="absolute inset-0 border-[1.5px] border-white rounded-[12px] z-10 pointer-events-none"></div>`;
+          }
+        }
+
+        // Número do dia - com circulo preenchido se for hoje
+        const n = document.createElement("div");
+        if (fullDate && !dim && isSameDay(fullDate, new Date())) {
+          n.className = "w-full text-left pl-0 py-[1px]";
+          n.innerHTML = `<span class="today-circle">${num}</span>`;
+        } else {
+          n.className = `w-full text-left text-[13px] font-normal pl-1 py-[1px] ${numColor}`;
+          n.textContent = num;
+        }
+        d.appendChild(n);
+
+        if (fullDate && !dim) {
+          const dayEvs = events.filter((e) => isSameDay(e.dateObj, fullDate));
+          const list = document.createElement("div");
+          list.className = "flex flex-col gap-[1px] overflow-hidden mt-[1px]";
+          dayEvs.slice(0, 3).forEach((e) => {
+            const el = document.createElement("div");
+            el.className = `event-word-wrap font-medium ${
+              e.isAllDay
+                ? "text-white rounded-[3px]"
+                : "text-gray-300 border-l-[3px]"
+            }`;
+            if (e.isAllDay) el.style.backgroundColor = e.colorHex;
+            else el.style.borderColor = e.colorHex;
+            el.textContent = e.title;
+            list.appendChild(el);
+          });
+          d.appendChild(list);
+        }
+        container.appendChild(d);
+      }
+
+      let touchStartX = 0,
+        isDragging = false;
+      const track = $("calendar-track"),
+        viewport = $("calendar-viewport");
+      viewport.addEventListener(
+        "touchstart",
+        (e) => {
+          touchStartX = e.touches[0].clientX;
+          isDragging = true;
+          track.style.transition = "none";
+        },
+        { passive: true },
+      );
+      viewport.addEventListener(
+        "touchmove",
+        (e) => {
+          if (!isDragging) return;
+          const dx = e.touches[0].clientX - touchStartX;
+          track.style.transform = `translateX(${
+            -33.3333 + (dx / viewport.clientWidth) * 100
+          }%)`;
+        },
+        { passive: true },
+      );
+      viewport.addEventListener("touchend", (e) => {
+        if (!isDragging) return;
+        isDragging = false;
+        const dx = e.changedTouches[0].clientX - touchStartX;
+        track.style.transition = "transform 0.3s cubic-bezier(0.25, 1, 0.5, 1)";
+        if (dx > 70) {
+          track.style.transform = `translateX(0%)`;
+          setTimeout(() => {
+            currentDate.setMonth(currentDate.getMonth() - 1);
+            track.style.transition = "none";
+            track.style.transform = "translateX(-33.3333%)";
+            renderUI();
+          }, 300);
+        } else if (dx < -70) {
+          track.style.transform = `translateX(-66.6666%)`;
+          setTimeout(() => {
+            currentDate.setMonth(currentDate.getMonth() + 1);
+            track.style.transition = "none";
+            track.style.transform = "translateX(-33.3333%)";
+            renderUI();
+          }, 300);
+        } else track.style.transform = `translateX(-33.3333%)`;
+      });
+
+      function openForm(data = null, isDup = false) {
+        $("time-spinner-container").classList.add("hidden");
+        activeTimeField = null;
+        $("suggestion-box").style.display = "none";
+        $("color-picker").classList.add("hidden");
+        if (data && (data.id || data.title)) {
+          editingId = isDup ? null : data.id;
+          editingDate = data.dateObj
+            ? new Date(data.dateObj)
+            : new Date(selectedDate);
+          $("modal-title").value = data.title || "";
+          $("modal-value").value = data.value || "";
+          $("modal-location").value = data.location || "";
+          $("label-time-start").textContent = data.startTime || "08:00";
+          $("label-time-end").textContent = data.endTime || "09:00";
+          isAllDay = !!data.isAllDay;
+          activeColorHex = data.colorHex || colors[0];
+          $("color-trigger").style.backgroundColor = activeColorHex;
+        } else {
+          editingId = null;
+          editingDate = new Date(selectedDate);
+          $("modal-title").value = "";
+          $("modal-value").value = "";
+          $("modal-location").value = "";
+          $("label-time-start").textContent = "08:00";
+          $("label-time-end").textContent = "09:00";
+          isAllDay = false;
+          activeColorHex = colors[0];
+          $("color-trigger").style.backgroundColor = colors[0];
+        }
+        updateFormDateDisplay();
+        updateToggleUI();
+        checkSaveBtn();
+        $("add-modal").classList.remove("hidden");
+      }
+      function handleTitleInput() {
+        checkSaveBtn();
+        const val = $("modal-title").value.toLowerCase();
+        const box = $("suggestion-box");
+        if (val.length < 2) {
+          box.style.display = "none";
+          return;
+        }
+        const unique = [...new Set(events.map((e) => e.title))];
+        const filtered = unique
+          .filter((t) => t.toLowerCase().includes(val))
+          .slice(0, 3);
+        if (filtered.length > 0) {
+          box.innerHTML = filtered
+            .map(
+              (t) =>
+                `<div class="suggestion-item" onclick="applySuggestion('${t}')">${t}</div>`,
+            )
+            .join("");
+          box.style.display = "block";
+        } else {
+          box.style.display = "none";
+        }
+      }
+      function applySuggestion(t) {
+        const last = [...events].reverse().find((e) => e.title === t);
+        if (last) {
+          $("modal-title").value = last.title;
+          $("modal-value").value = last.value || "";
+          $("modal-location").value = last.location || "";
+          $("label-time-start").textContent = last.startTime || "08:00";
+          $("label-time-end").textContent = last.endTime || "09:00";
+          activeColorHex = last.colorHex || colors[0];
+          $("color-trigger").style.backgroundColor = activeColorHex;
+        }
+        $("suggestion-box").style.display = "none";
+        checkSaveBtn();
+      }
+      function saveEvent() {
+        const iso = editingDate.toISOString().split("T")[0];
+        const obj = {
+          title: $("modal-title").value,
+          date: iso,
+          dateObj: new Date(iso + "T12:00:00"),
+          startTime: $("label-time-start").textContent,
+          endTime: $("label-time-end").textContent,
+          value: parseFloat($("modal-value").value) || 0,
+          location: $("modal-location").value,
+          isAllDay: isAllDay,
+          colorHex: activeColorHex,
+          isPaid: false,
+        };
+        if (editingId) {
+          const i = events.findIndex((e) => e.id === editingId);
+          if (i > -1) {
+            obj.isPaid = events[i].isPaid || false;
+            events[i] = { ...events[i], ...obj };
+          }
+        } else {
+          events.push({ id: Date.now(), ...obj });
+        }
+        renderUI();
+        closeForm();
+      }
+      function toggleSearch(show) {
+        $("search-modal").classList.toggle("hidden", !show);
+        if (show) {
+          $("search-input").value = "";
+          $("search-results").innerHTML = "";
+          $("search-input").focus();
+        }
+      }
+      function clearSearch() {
+        $("search-input").value = "";
+        handleSearch();
+      }
+      function handleSearch() {
+        const val = $("search-input").value.toLowerCase();
+        const results = $("search-results");
+        results.innerHTML = "";
+        if (!val) return;
+        const filtered = events.filter((e) =>
+          e.title.toLowerCase().includes(val),
+        );
+        filtered.forEach((e) => {
+          const d = document.createElement("div");
+          d.className =
+            "p-4 bg-[#2c2c2e] rounded-3xl flex justify-between items-center mb-2 active:bg-[#3a3a3c]";
+          d.onclick = () => {
+            toggleSearch(false);
+            openView(e);
+          };
+          d.innerHTML = `<div class="flex-1"><div class="text-white font-medium text-lg">${
+            e.title
+          }</div><div class="text-gray-500 text-sm">${new Date(
+            e.date + "T12:00:00",
+          ).toLocaleDateString()} • ${
+            e.startTime
+          }</div></div><i data-lucide="chevron-right" class="text-gray-700"></i>`;
+          results.appendChild(d);
+        });
+        lucide.createIcons();
+      }
+      // --- DAY SUMMARY RENDERING (Portrait Modal + Landscape Side Panel) ---
+      function renderDaySummaryContent(date) {
+        // Atualiza Modal Portrait
+        $("summary-day-number").textContent = date.getDate();
+        $("summary-weekday").textContent = weekdaysLong[date.getDay()];
+
+        // Atualiza Side Panel Landscape
+        if ($("landscape-summary-day-number")) {
+          $("landscape-summary-day-number").textContent = date.getDate();
+          $("landscape-summary-weekday").textContent =
+            weekdaysLong[date.getDay()];
+        }
+
+        const listPortrait = $("summary-events-list");
+        const listLandscape = $("landscape-summary-events-list");
+        listPortrait.innerHTML = "";
+        if (listLandscape) listLandscape.innerHTML = "";
+
+        const dayEvs = events.filter((e) => isSameDay(e.dateObj, date));
+        if (!dayEvs.length) {
+          listPortrait.innerHTML =
+            '<div class="text-gray-500 text-center py-12 italic text-sm">Sem eventos</div>';
+          if (listLandscape)
+            listLandscape.innerHTML =
+              '<div class="text-gray-500 text-center py-12 italic text-sm">Sem eventos</div>';
+        } else {
+          dayEvs.forEach((e) => {
+            const rowHTML = `<span class="text-xs text-gray-500 w-10 text-right font-medium">${e.startTime}</span><div class="w-1.5 h-4 rounded-full" style="background:${e.colorHex}"></div><span class="flex-1 truncate text-white text-[17px] font-medium">${e.title}</span>`;
+
+            // Item Portrait
+            const pRow = document.createElement("div");
+            pRow.className =
+              "flex items-center gap-5 p-4 active:bg-white/5 rounded-2xl cursor-pointer";
+            pRow.onclick = () => {
+              closeSummary();
+              openView(e);
+            };
+            pRow.innerHTML = rowHTML;
+            listPortrait.appendChild(pRow);
+
+            // Item Landscape
+            if (listLandscape) {
+              const lRow = document.createElement("div");
+              lRow.className =
+                "flex items-center gap-5 p-4 active:bg-white/5 rounded-2xl cursor-pointer transition-colors";
+              lRow.onclick = () => openView(e);
+              lRow.innerHTML = rowHTML;
+              listLandscape.appendChild(lRow);
+            }
+          });
+        }
+      }
+
+      function openDaySummary(date) {
+        // Quando o modal abre explicitamente no portrait
+        renderDaySummaryContent(date);
+        $("day-summary-overlay").classList.remove("hidden");
+      }
+
+      function closeSummary(e) {
+        if (e && e.target !== $("day-summary-overlay")) return;
+        $("day-summary-overlay").classList.add("hidden");
+      }
+
+      function openFormFromSummary() {
+        const t = $("summary-input").value;
+        $("summary-input").value = "";
+        closeSummary();
+        openForm(t ? { title: t } : null);
+      }
+
+      function openFormFromLandscape() {
+        const t = $("landscape-summary-input").value;
+        $("landscape-summary-input").value = "";
+        openForm(t ? { title: t } : null);
+      }
+      function openView(e) {
+        currentViewingEvent = e;
+        $("view-title").textContent = e.title;
+        $("view-color-dot").style.backgroundColor = e.colorHex;
+        const ds = e.dateObj.toLocaleDateString("pt-PT", {
+          weekday: "short",
+          day: "numeric",
+          month: "short",
+        });
+        $("view-start-date").textContent = ds;
+        $("view-end-date").textContent = ds;
+        $("view-start-time").textContent = e.startTime;
+        $("view-end-time").textContent = e.endTime;
+        if (e.location) {
+          $("view-location-container").classList.remove("hidden");
+          $("view-location-text").textContent = e.location;
+        } else $("view-location-container").classList.add("hidden");
+        if (e.value) {
+          $("view-value-container").classList.remove("hidden");
+          $("view-value-text").textContent = formatMoney(e.value);
+          updateViewStatusUI(e.isPaid);
+        } else $("view-value-container").classList.add("hidden");
+        $("event-details-view").classList.remove("hidden");
+        lucide.createIcons();
+      }
+      function updateViewStatusUI(isPaid) {
+        const btn = $("view-status-toggle");
+        const iconBox = $("view-status-icon");
+        const checkIcon = $("view-status-check");
+        const label = $("view-status-label");
+
+        if (isPaid) {
+          btn.className =
+            "flex items-center gap-2 px-3 py-1.5 rounded-full text-sm font-bold border border-green-500 bg-green-900/30 text-green-400";
+          iconBox.className =
+            "w-4 h-4 rounded-full bg-green-500 flex items-center justify-center";
+          checkIcon.classList.remove("hidden");
+          label.textContent = "Recebido";
+        } else {
+          btn.className =
+            "flex items-center gap-2 px-3 py-1.5 rounded-full text-sm font-bold border border-red-500 bg-red-900/30 text-red-400";
+          iconBox.className =
+            "w-4 h-4 rounded-full border-2 border-red-500 flex items-center justify-center";
+          checkIcon.classList.add("hidden");
+          label.textContent = "Não Pago";
+        }
+      }
+
+      function toggleCurrentEventStatus() {
+        if (!currentViewingEvent) return;
+        currentViewingEvent.isPaid = !currentViewingEvent.isPaid;
+        updateViewStatusUI(currentViewingEvent.isPaid);
+
+        const i = events.findIndex((ev) => ev.id === currentViewingEvent.id);
+        if (i > -1) {
+          events[i] = { ...events[i], isPaid: currentViewingEvent.isPaid };
+          renderUI();
+        }
+      }
+
+      function closeEventDetails() {
+        $("event-details-view").classList.add("hidden");
+      }
+      function duplicateEvent() {
+        closeEventDetails();
+        openForm(currentViewingEvent, true);
+      }
+      function editEvent() {
+        closeEventDetails();
+        openForm(currentViewingEvent);
+      }
+      function shareEvent() {
+        if (!currentViewingEvent) return;
+        const e = currentViewingEvent;
+        const ds = e.dateObj.toLocaleDateString("pt-PT", {
+          day: "2-digit",
+          month: "2-digit",
+          year: "numeric",
+        });
+        const text = `Evento: ${e.title}\nData: ${ds}\nHora: ${
+          e.startTime
+        } às ${e.endTime}${e.location ? "\nLocal: " + e.location : ""}`;
+
+        const payload = {
+          title: e.title,
+          date: e.date,
+          startTime: e.startTime,
+          endTime: e.endTime,
+          location: e.location,
+          value: e.value,
+          colorHex: e.colorHex,
+          isAllDay: e.isAllDay,
+        };
+        const b64 = btoa(encodeURIComponent(JSON.stringify(payload)));
+        const appLink = `https://agendapro.app/share?data=${b64}`;
+
+        const callbackName = "isgd_" + Math.round(100000 * Math.random());
+        const script = document.createElement("script");
+
+        window[callbackName] = function (data) {
+          cleanup();
+          const finalLink = data.shorturl ? data.shorturl : appLink;
+          const shareText = `${text}\n\nSalvar no app:\n${finalLink}`;
+          window.open(
+            `https://api.whatsapp.com/send?text=${encodeURIComponent(
+              shareText,
+            )}`,
+            "_blank",
+          );
+        };
+
+        script.onerror = function () {
+          cleanup();
+          const shareText = `${text}\n\nSalvar no app:\n${appLink}`;
+          window.open(
+            `https://api.whatsapp.com/send?text=${encodeURIComponent(
+              shareText,
+            )}`,
+            "_blank",
+          );
+        };
+
+        function cleanup() {
+          delete window[callbackName];
+          if (script.parentNode) document.body.removeChild(script);
+        }
+
+        script.src = `https://is.gd/create.php?format=json&url=${encodeURIComponent(
+          appLink,
+        )}&callback=${callbackName}`;
+        document.body.appendChild(script);
+      }
+      function deleteEvent() {
+        if (confirm("Excluir?")) {
+          events = events.filter((e) => e.id !== currentViewingEvent.id);
+          renderUI();
+          closeEventDetails();
+        }
+      }
+      function openWaze() {
+        if (currentViewingEvent?.location)
+          window.open(
+            `https://waze.com/ul?q=${encodeURIComponent(
+              currentViewingEvent.location,
+            )}&navigate=yes`,
+          );
+      }
+      function openCustomDatePicker() {
+        pickerDisplayDate = new Date(editingDate);
+        renderPickerGrid();
+        $("custom-date-picker").classList.remove("hidden");
+      }
+      function closeCustomDatePicker(e) {
+        if (e && e.target !== $("custom-date-picker")) return;
+        $("custom-date-picker").classList.add("hidden");
+      }
+      function changePickerMonth(off) {
+        pickerDisplayDate.setMonth(pickerDisplayDate.getMonth() + off);
+        renderPickerGrid();
+      }
+      function renderPickerGrid() {
+        $("picker-month-year").textContent = `${
+          monthsLong[pickerDisplayDate.getMonth()]
+        } ${pickerDisplayDate.getFullYear()}`;
+        const grid = $("picker-grid");
+        grid.innerHTML = "";
+        const start = new Date(
+          pickerDisplayDate.getFullYear(),
+          pickerDisplayDate.getMonth(),
+          1,
+        ).getDay();
+        const total = new Date(
+          pickerDisplayDate.getFullYear(),
+          pickerDisplayDate.getMonth() + 1,
+          0,
+        ).getDate();
+        for (let i = 0; i < start; i++)
+          grid.appendChild(document.createElement("div"));
+        for (let i = 1; i <= total; i++) {
+          const btn = document.createElement("div");
+          const isS =
+            i === editingDate.getDate() &&
+            pickerDisplayDate.getMonth() === editingDate.getMonth();
+          btn.className = `h-14 w-14 flex items-center justify-center rounded-full m-auto text-lg cursor-pointer ${
+            isS
+              ? "bg-blue-600 text-white font-bold shadow-lg scale-105"
+              : "text-gray-300 active:bg-white/10"
+          }`;
+          btn.textContent = i;
+          btn.onclick = () => {
+            editingDate = new Date(
+              pickerDisplayDate.getFullYear(),
+              pickerDisplayDate.getMonth(),
+              i,
+            );
+            updateFormDateDisplay();
+            $("custom-date-picker").classList.add("hidden");
+          };
+          grid.appendChild(btn);
+        }
+      }
+      function updateFormDateDisplay() {
+        const s = editingDate.toLocaleDateString("pt-PT", {
+          weekday: "short",
+          day: "numeric",
+          month: "short",
+        });
+        $("label-date-start").textContent = s;
+        $("label-date-end").textContent = s;
+      }
+      function toggleAllDay() {
+        isAllDay = !isAllDay;
+        updateToggleUI();
+      }
+      function updateToggleUI() {
+        $("toggle-circle").style.transform = isAllDay
+          ? "translateX(22px)"
+          : "translateX(0)";
+        $("toggle-allday").style.backgroundColor = isAllDay
+          ? "#3b82f6"
+          : "#4b5563";
+      }
+      function closeForm() {
+        $("add-modal").classList.add("hidden");
+      }
+      function checkSaveBtn() {
+        $("btn-save").disabled = !$("modal-title").value.trim();
+      }
+      function toggleTimeSpinner(type) {
+        if (
+          activeTimeField === type &&
+          !$("time-spinner-container").classList.contains("hidden")
+        ) {
+          $("time-spinner-container").classList.add("hidden");
+          activeTimeField = null;
+        } else {
+          activeTimeField = type;
+          $("time-spinner-container").classList.remove("hidden");
+          const timeText =
+            type === "start"
+              ? $("label-time-start").textContent
+              : $("label-time-end").textContent;
+          if (timeText) {
+            const parts = timeText.split(":");
+            if (parts.length === 2) {
+              $("spinner-hours").scrollTop = parseInt(parts[0], 10) * 50;
+              $("spinner-minutes").scrollTop =
+                (parseInt(parts[1], 10) / 5) * 50;
+            }
+          }
+        }
+      }
+      function updateTimeFromSpinner() {
+        const h = Math.round($("spinner-hours").scrollTop / 50),
+          m = Math.round($("spinner-minutes").scrollTop / 50) * 5;
+        const t = `${h.toString().padStart(2, "0")}:${m
+          .toString()
+          .padStart(2, "0")}`;
+        if (activeTimeField === "start") $("label-time-start").textContent = t;
+        else $("label-time-end").textContent = t;
+      }
+      function toggleColorPicker(e) {
+        e.stopPropagation();
+        $("color-picker").classList.toggle("hidden");
+      }
+      function initColorGrid() {
+        const cp = $("color-picker");
+        colors.forEach((c) => {
+          const b = document.createElement("div");
+          b.className = `w-10 h-10 rounded-full border border-black/20 cursor-pointer active:scale-90 shadow-sm`;
+          b.style.backgroundColor = c;
+          b.onclick = () => {
+            activeColorHex = c;
+            $("color-trigger").style.backgroundColor = c;
+            cp.classList.add("hidden");
+          };
+          cp.appendChild(b);
+        });
+        document.addEventListener("click", (e) => {
+          if (!$("color-trigger").contains(e.target) && !cp.contains(e.target))
+            cp.classList.add("hidden");
+        });
+      }
+      window.onload = () => {
+        const hS = $("spinner-hours"),
+          mS = $("spinner-minutes");
+        for (let i = 0; i < 24; i++) {
+          const d = document.createElement("div");
+          d.className =
+            "h-[50px] flex items-center justify-center snap-center text-gray-500 text-xl font-light";
+          d.textContent = i.toString().padStart(2, "0");
+          hS.appendChild(d);
+        }
+        for (let i = 0; i < 60; i += 5) {
+          const d = document.createElement("div");
+          d.className =
+            "h-[50px] flex items-center justify-center snap-center text-gray-500 text-xl font-light";
+          d.textContent = i.toString().padStart(2, "0");
+          mS.appendChild(d);
+        }
+        initColorGrid();
+        renderUI();
+      };
+      function openStatsModal() {
+        $("stats-modal").classList.remove("hidden");
+        const total = events
+          .filter((e) => e.dateObj.getFullYear() === currentDate.getFullYear())
+          .reduce((a, c) => a + (c.value || 0), 0);
+        $("stats-total-year").textContent = formatMoney(total);
+        const list = $("stats-month-list");
+        list.innerHTML = "";
+        monthsLong.forEach((m, i) => {
+          const val = events
+            .filter(
+              (e) =>
+                e.dateObj.getMonth() === i &&
+                e.dateObj.getFullYear() === currentDate.getFullYear(),
+            )
+            .reduce((a, c) => a + (c.value || 0), 0);
+          list.innerHTML += `<div class="flex justify-between items-center p-6 border-b border-white/5 last:border-none text-white font-medium"><span class="flex-1 ${
+            i === currentDate.getMonth()
+              ? "text-white font-bold"
+              : "text-gray-400"
+          }">${m}</span><span class="text-right min-w-[120px] ${
+            val > 0 ? "text-green-400 font-bold" : "text-gray-600"
+          }" style="font-variant-numeric: tabular-nums">${formatMoney(
+            val,
+          )}</span></div>`;
+        });
+      }
+      function closeStatsModal() {
+        $("stats-modal").classList.add("hidden");
+      }
+
+      function getStartOfWeek(d) {
+        const date = new Date(d);
+        const day = date.getDay();
+        const diff = date.getDate() - day;
+        return new Date(date.setDate(diff)).setHours(0, 0, 0, 0);
+      }
+      function getEndOfWeek(d) {
+        const date = new Date(d);
+        const day = date.getDay();
+        const diff = date.getDate() + (6 - day);
+        return new Date(date.setDate(diff)).setHours(23, 59, 59, 999);
+      }
+
+      function openFinancialSummaryModal() {
+        $("financial-summary-modal").classList.remove("hidden");
+        updateFinancialSummary();
+      }
+
+      function closeFinancialSummaryModal() {
+        $("financial-summary-modal").classList.add("hidden");
+      }
+
+      function toggleEventStatusFromSummary(id) {
+        const i = events.findIndex((ev) => ev.id === id);
+        if (i > -1) {
+          events[i].isPaid = !events[i].isPaid;
+          renderUI();
+          updateFinancialSummary();
+        }
+      }
+
+      function updateFinancialSummary() {
+        const startMonth = new Date(
+          currentDate.getFullYear(),
+          currentDate.getMonth(),
+          1,
+        ).getTime();
+        const endMonth = new Date(
+          currentDate.getFullYear(),
+          currentDate.getMonth() + 1,
+          0,
+          23,
+          59,
+          59,
+          999,
+        ).getTime();
+
+        const today = new Date();
+        const startWeek = getStartOfWeek(today);
+        const endWeek = getEndOfWeek(today);
+
+        let monthPending = 0;
+        let monthPaid = 0;
+        let weekPending = 0;
+        let weekPaid = 0;
+
+        const pendingMonthEvents = [];
+        const pendingWeekEvents = [];
+
+        events.forEach((e) => {
+          const time = e.dateObj.getTime();
+          const val = e.value || 0;
+
+          if (time >= startMonth && time <= endMonth) {
+            if (e.isPaid) {
+              monthPaid += val;
+            } else {
+              monthPending += val;
+              if (val > 0) pendingMonthEvents.push(e);
+            }
+          }
+
+          if (time >= startWeek && time <= endWeek) {
+            if (e.isPaid) {
+              weekPaid += val;
+            } else {
+              weekPending += val;
+              if (val > 0) pendingWeekEvents.push(e);
+            }
+          }
+        });
+
+        $("fin-month-pending").textContent = formatMoney(monthPending);
+        $("fin-month-paid").textContent = formatMoney(monthPaid);
+        $("fin-week-pending").textContent = formatMoney(weekPending);
+        $("fin-week-paid").textContent = formatMoney(weekPaid);
+
+        const listMonth = $("fin-pending-month-list");
+        if (listMonth) {
+          listMonth.innerHTML = "";
+
+          if (pendingMonthEvents.length === 0) {
+            listMonth.innerHTML =
+              '<div class="text-gray-500 text-center py-8 italic text-sm">Nenhum valor a receber</div>';
+          } else {
+            pendingMonthEvents.sort((a, b) => a.dateObj - b.dateObj);
+
+            pendingMonthEvents.forEach((e) => {
+              const ds = e.dateObj.toLocaleDateString("pt-PT", {
+                day: "2-digit",
+                month: "2-digit",
+              });
+
+              const row = document.createElement("div");
+              row.className =
+                "flex justify-between items-center p-5 border-b border-white/5 last:border-none";
+
+              row.innerHTML = `
+                      <div class="flex-1 overflow-hidden pr-3">
+                          <div class="text-white font-medium truncate">${
+                            e.title
+                          }</div>
+                          <div class="text-gray-500 text-sm mt-0.5">${ds} • ${formatMoney(
+                e.value,
+              )}</div>
+                      </div>
+                      <button
+                        onclick="toggleEventStatusFromSummary(${e.id})"
+                        class="flex items-center gap-2 px-3 py-1.5 rounded-full text-[11px] font-bold border border-red-500 bg-red-900/30 text-red-400 active:scale-95 transition-transform shrink-0"
+                      >
+                        <div class="w-3.5 h-3.5 rounded-full border-2 border-red-500 flex items-center justify-center"></div>
+                        Não Pago
+                      </button>
+                    `;
+              listMonth.appendChild(row);
+            });
+          }
+        }
+
+        const listWeek = $("fin-pending-week-list");
+        if (listWeek) {
+          listWeek.innerHTML = "";
+
+          if (pendingWeekEvents.length === 0) {
+            listWeek.innerHTML =
+              '<div class="text-gray-500 text-center py-8 italic text-sm">Nenhum valor a receber</div>';
+          } else {
+            pendingWeekEvents.sort((a, b) => a.dateObj - b.dateObj);
+
+            pendingWeekEvents.forEach((e) => {
+              const ds = e.dateObj
+                .toLocaleDateString("pt-PT", {
+                  weekday: "short",
+                  day: "2-digit",
+                  month: "2-digit",
+                })
+                .replace(".", "");
+
+              const row = document.createElement("div");
+              row.className =
+                "flex justify-between items-center p-5 border-b border-white/5 last:border-none";
+
+              row.innerHTML = `
+                      <div class="flex-1 overflow-hidden pr-3">
+                          <div class="text-white font-medium truncate">${
+                            e.title
+                          }</div>
+                          <div class="text-gray-500 text-sm mt-0.5 capitalize">${ds} • ${formatMoney(
+                e.value,
+              )}</div>
+                      </div>
+                      <button
+                        onclick="toggleEventStatusFromSummary(${e.id})"
+                        class="flex items-center gap-2 px-3 py-1.5 rounded-full text-[11px] font-bold border border-red-500 bg-red-900/30 text-red-400 active:scale-95 transition-transform shrink-0"
+                      >
+                        <div class="w-3.5 h-3.5 rounded-full border-2 border-red-500 flex items-center justify-center"></div>
+                        Não Pago
+                      </button>
+                    `;
+              listWeek.appendChild(row);
+            });
+          }
+        }
+      }
+
+      // --- BACKUP / RESTORE ---
+      async function exportBackup() {
+        const data = localStorage.getItem("my_cal_events") || "[]";
+        const fileName = `calendario_backup_${
+          new Date().toISOString().split("T")[0]
+        }.json`;
+
+        if (
+          window.Capacitor &&
+          window.Capacitor.Plugins &&
+          window.Capacitor.Plugins.Filesystem
+        ) {
+          try {
+            const { Filesystem } = window.Capacitor.Plugins;
+            try {
+              await Filesystem.writeFile({
+                path: `Download/${fileName}`,
+                data: data,
+                directory: "EXTERNAL_STORAGE",
+                encoding: "utf8",
+              });
+              alert(`Backup salvo com sucesso na aba Download do seu celular!`);
+            } catch (err) {
+              await Filesystem.writeFile({
+                path: fileName,
+                data: data,
+                directory: "DOCUMENTS",
+                encoding: "utf8",
+              });
+              alert(
+                `Backup salvo com sucesso na aba Documentos do seu celular!`,
+              );
+            }
+          } catch (e) {
+            alert("Erro nativo ao criar arquivo de backup: " + e);
+          }
+        } else {
+          const blob = new Blob([data], { type: "application/json" });
+          const url = URL.createObjectURL(blob);
+          const a = document.createElement("a");
+          a.href = url;
+          a.download = fileName;
+          a.style.display = "none";
+          document.body.appendChild(a);
+          a.click();
+          document.body.removeChild(a);
+          URL.revokeObjectURL(url);
+        }
+        toggleSidebar();
+      }
+
+      function importBackup() {
+        document.getElementById("backup-input").click();
+      }
+
+      function handleImport(event) {
+        const file = event.target.files[0];
+        if (!file) return;
+        const reader = new FileReader();
+        reader.onload = (e) => {
+          try {
+            const importedEvents = JSON.parse(e.target.result);
+            if (Array.isArray(importedEvents)) {
+              localStorage.setItem(
+                "my_cal_events",
+                JSON.stringify(importedEvents),
+              );
+              events = importedEvents.map((ev) => ({
+                ...ev,
+                dateObj: new Date(ev.date + "T12:00:00"),
+              }));
+              renderUI();
+              alert("Backup restaurado com sucesso!");
+            } else {
+              alert("Arquivo de backup inválido.");
+            }
+          } catch (err) {
+            alert("Erro ao ler o arquivo de backup: " + err);
+          }
+        };
+        reader.readAsText(file);
+        toggleSidebar();
+        event.target.value = "";
+      }
+
+      // --- DEEP LINK / SHARE IMPORT ---
+      window.addEventListener("load", () => {
+        const params = new URLSearchParams(window.location.search);
+        const dataB64 = params.get("data");
+        if (dataB64) {
+          try {
+            const dataStr = decodeURIComponent(atob(dataB64));
+            const payload = JSON.parse(dataStr);
+            payload.dateObj = new Date(payload.date + "T12:00:00");
+            setTimeout(() => openForm(payload, true), 500);
+            window.history.replaceState(
+              {},
+              document.title,
+              window.location.pathname,
+            );
+          } catch (err) {
+            console.error("Invalid share data:", err);
+          }
+        }
+      });
+
+      // --- ANDROID BACK BUTTON ---
+      function handleAppBackButton() {
+        let handled = false;
+        if (!$("custom-date-picker").classList.contains("hidden")) {
+          closeCustomDatePicker(null);
+          handled = true;
+        } else if (!$("color-picker").classList.contains("hidden")) {
+          $("color-picker").classList.add("hidden");
+          handled = true;
+        } else if (!$("add-modal").classList.contains("hidden")) {
+          closeForm();
+          handled = true;
+        } else if (!$("event-details-view").classList.contains("hidden")) {
+          closeEventDetails();
+          handled = true;
+        } else if (!$("day-summary-overlay").classList.contains("hidden")) {
+          closeSummary();
+          handled = true;
+        } else if (!$("search-modal").classList.contains("hidden")) {
+          toggleSearch(false);
+          handled = true;
+        } else if (!$("stats-modal").classList.contains("hidden")) {
+          closeStatsModal();
+          handled = true;
+        } else if (!$("financial-summary-modal").classList.contains("hidden")) {
+          closeFinancialSummaryModal();
+          handled = true;
+        } else if (!$("sidebar-overlay").classList.contains("hidden")) {
+          toggleSidebar();
+          handled = true;
+        }
+        return handled;
+      }
+
+      document.addEventListener("backbutton", (e) => {
+        if (handleAppBackButton()) {
+          e.preventDefault();
+        }
+      });
+
+      if (
+        window.Capacitor &&
+        window.Capacitor.Plugins &&
+        window.Capacitor.Plugins.App
+      ) {
+        window.Capacitor.Plugins.App.addListener("backButton", () => {
+          if (!handleAppBackButton()) {
+            window.Capacitor.Plugins.App.exitApp();
+          }
+        });
+      }
+    </script>
   </body>
 </html>
