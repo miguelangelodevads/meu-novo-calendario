@@ -387,15 +387,15 @@
 
       <!-- DIAS DA SEMANA -->
       <div
-        class="weekdays-row grid grid-cols-7 pb-1 mt-1 px-2 shrink-0 bg-black z-20 text-left text-[12px] font-semibold text-gray-500 tracking-wider"
+        class="weekdays-row grid grid-cols-7 pb-1 mt-1 px-2 shrink-0 bg-black z-20 text-left text-[13px] font-semibold text-gray-500"
       >
-        <div class="text-[#ff4d4d] pl-[5px]">D</div>
-        <div class="pl-[5px]">S</div>
-        <div class="pl-[5px]">T</div>
-        <div class="pl-[5px]">Q</div>
-        <div class="pl-[5px]">Q</div>
-        <div class="pl-[5px]">S</div>
-        <div class="text-[#4d9fff] pl-[5px]">S</div>
+        <div class="text-[#ff4d4d] pl-[4px]">D</div>
+        <div class="pl-[4px]">S</div>
+        <div class="pl-[4px]">T</div>
+        <div class="pl-[4px]">Q</div>
+        <div class="pl-[4px]">Q</div>
+        <div class="pl-[4px]">S</div>
+        <div class="text-[#4d9fff] pl-[4px]">S</div>
       </div>
 
       <!-- CALENDÁRIO ESTEIRA -->
@@ -958,14 +958,48 @@
 
         <!-- Pendentes -->
         <div>
-          <h3
-            class="text-gray-400 uppercase tracking-wider text-xs font-bold mb-4 pl-2"
+          <button
+            id="fin-btn-month"
+            onclick="toggleFinList('month')"
+            class="flex items-center justify-between w-full text-left mb-2 px-5 py-4 bg-[#1c1c1e] rounded-2xl active:opacity-50 transition-opacity outline-none shadow-xl border border-white/5"
           >
-            Eventos a Receber (Mês Atual)
-          </h3>
+            <h3 class="text-white tracking-wider text-[15px] font-bold">
+              Eventos a Receber (Mês Atual)
+            </h3>
+            <i
+              id="fin-icon-month"
+              data-lucide="chevron-down"
+              class="text-gray-400 w-5 h-5"
+              style="transition: transform 0.3s ease"
+            ></i>
+          </button>
           <div
-            class="bg-[#1c1c1e] rounded-[32px] overflow-hidden border border-white/5 shadow-xl list-container"
-            id="fin-pending-list"
+            id="fin-pending-month-list"
+            class="bg-[#1c1c1e] rounded-[32px] overflow-hidden border border-white/5 shadow-xl"
+            style="display: none"
+          ></div>
+        </div>
+
+        <div class="mt-4">
+          <button
+            id="fin-btn-week"
+            onclick="toggleFinList('week')"
+            class="flex items-center justify-between w-full text-left mb-2 px-5 py-4 bg-[#1c1c1e] rounded-2xl active:opacity-50 transition-opacity outline-none shadow-xl border border-white/5"
+          >
+            <h3 class="text-white tracking-wider text-[15px] font-bold">
+              Eventos a Receber (Semana Atual)
+            </h3>
+            <i
+              id="fin-icon-week"
+              data-lucide="chevron-down"
+              class="text-gray-400 w-5 h-5"
+              style="transition: transform 0.3s ease"
+            ></i>
+          </button>
+          <div
+            id="fin-pending-week-list"
+            class="bg-[#1c1c1e] rounded-[32px] overflow-hidden border border-white/5 shadow-xl"
+            style="display: none"
           ></div>
         </div>
       </div>
@@ -1003,7 +1037,7 @@
           </div>
           <div
             id="stats-total-year"
-            class="text-4xl font-black text-white break-words"
+            class="text-3xl font-black text-white whitespace-nowrap"
           >
             R$ 0,00
           </div>
@@ -1274,6 +1308,7 @@
       }
 
       let touchStartX = 0,
+        touchStartTime = 0,
         isDragging = false;
       const track = $("calendar-track"),
         viewport = $("calendar-viewport");
@@ -1281,6 +1316,7 @@
         "touchstart",
         (e) => {
           touchStartX = e.touches[0].clientX;
+          touchStartTime = Date.now();
           isDragging = true;
           track.style.transition = "none";
         },
@@ -1301,23 +1337,27 @@
         if (!isDragging) return;
         isDragging = false;
         const dx = e.changedTouches[0].clientX - touchStartX;
-        track.style.transition = "transform 0.3s cubic-bezier(0.25, 1, 0.5, 1)";
-        if (dx > 70) {
+        const dt = Date.now() - touchStartTime;
+        const velocity = Math.abs(dx) / dt;
+        const shouldSwipe = Math.abs(dx) > 50 || velocity > 0.4;
+        track.style.transition =
+          "transform 0.4s cubic-bezier(0.22, 1, 0.36, 1)";
+        if (shouldSwipe && dx > 0) {
           track.style.transform = `translateX(0%)`;
           setTimeout(() => {
             currentDate.setMonth(currentDate.getMonth() - 1);
             track.style.transition = "none";
             track.style.transform = "translateX(-33.3333%)";
             renderUI();
-          }, 300);
-        } else if (dx < -70) {
+          }, 400);
+        } else if (shouldSwipe && dx < 0) {
           track.style.transform = `translateX(-66.6666%)`;
           setTimeout(() => {
             currentDate.setMonth(currentDate.getMonth() + 1);
             track.style.transition = "none";
             track.style.transform = "translateX(-33.3333%)";
             renderUI();
-          }, 300);
+          }, 400);
         } else track.style.transform = `translateX(-33.3333%)`;
       });
 
@@ -1898,6 +1938,19 @@
           renderUI();
           updateFinancialSummary();
         }
+      }
+
+      function toggleFinList(type) {
+        var id =
+          type === "month" ? "fin-pending-month-list" : "fin-pending-week-list";
+        var iconId = type === "month" ? "fin-icon-month" : "fin-icon-week";
+        var list = document.getElementById(id);
+        var icon = document.getElementById(iconId);
+        if (!list) return;
+        var showing = list.style.display === "block";
+        list.style.display = showing ? "none" : "block";
+        if (icon)
+          icon.style.transform = showing ? "rotate(0deg)" : "rotate(180deg)";
       }
 
       function updateFinancialSummary() {
